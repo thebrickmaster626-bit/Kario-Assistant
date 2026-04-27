@@ -112,12 +112,13 @@ if response.message.tool_calls:
             })
 
          # Ask the model for a *second* response after the tool results ONLY if the tool was to get data, if it is to execute actions then this will be skipped
-        final_response = chat(
-            model=LLM,
-            messages=messages,
-            think=False,
-            options=FAST_OPTIONS_SECOND_PASS,
-        )
+        if Has_tool_result:
+            final_response = chat(
+                model=LLM,
+                messages=messages,
+                think=False,
+                options=FAST_OPTIONS_SECOND_PASS,
+            )
 
         print("Assistant after tools:", final_response.message.content)
 
