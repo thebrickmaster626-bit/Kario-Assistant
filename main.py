@@ -120,8 +120,8 @@ if response.message.tool_calls:
                 options=FAST_OPTIONS_SECOND_PASS,
             )
 
-        print("Assistant after tools:", final_response.message.content)
+            print("Assistant after tools:", final_response.message.content)
 
-        Important_Stuff.speak(final_response.message.content)
+            Important_Stuff.speak(final_response.message.content)
 else:
-    pass
+    Important_Stuff.speak(response_text)

@@ -171,7 +171,13 @@ class General_LLM_Tools:
     @staticmethod
     def get_date_and_time():
         now = datetime.now()
-        value = now.strftime("%Y-%m-%d %H:%M:%S")
+
+        hour = now.strftime("%I").lstrip("0")
+        minute = now.strftime("%M")
+        ampm = now.strftime("%p")
+
+        value = f"{now.strftime('%Y-%m-%d')} {hour}:{minute} {ampm}"
+
         print(value)
         return value
 
