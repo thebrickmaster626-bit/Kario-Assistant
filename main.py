@@ -40,7 +40,7 @@ while True:
         ]
     if "timer" in prompt.lower() or "countdown" in prompt.lower():
         messages = [
-            {"role": "system", "content": system_prompt}
+            {"role": "system", "content": system_prompt},
             {"role": "user", "content": prompt}
         ]
         if Testing_automation:
