@@ -1,7 +1,7 @@
 # Kario
 
 Kario is a smart assistant powered by [Ollama](https://ollama.com). I built it to replace Siri.
-The project is still in active development, so expect bugs and occasional model changes.
+The project is still in active development, so expect bugs and sometimes frequent model changes.
 
 ## Installation
 
@@ -46,7 +46,7 @@ source .venv/bin/activate
 
 If `python` or `python3` already points to Python 3.13 on your machine, you can use that instead.
 
-3. Install dependencies:
+3. Install libraries:
 
 ```sh
 pip install -r requirements.txt

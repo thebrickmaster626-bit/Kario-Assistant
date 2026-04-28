@@ -9,7 +9,7 @@ print_vol = True
 
 
 def record_until_silence(
-    silence_threshold=600,
+    silence_threshold=650,
     silence_chunks=20,
     chunk_size=2048,
     rate=16000,
