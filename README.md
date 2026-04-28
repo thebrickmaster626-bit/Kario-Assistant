@@ -69,6 +69,6 @@ python main.py
 - The default model may change over time.
 - Keep at least 5 GB of free disk space for local model files.
 - macOS-only features currently include `say`, `osascript`, Contacts, Messages, FaceTime, and Spotify automation.
-- Remove those if you would like to make the whole thing cross-compatible. I suggest you take the 10 minutes of
-  prompting ChatGPT to remove it all, as I do not have a Windows PC to test on and am not going to maintain an entirely
-  seperate git.
+- Remove those if you would like to make the whole thing cross-compatible. I suggest you take the 10 minutes of removing
+  it all (or just ask ChatGPT), as I do not have a Windows PC to test on and am not going to maintain an entirely
+  separate git repository. 
