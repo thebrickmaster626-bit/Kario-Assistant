@@ -2,7 +2,7 @@ import ollama
 import json
 from ollama import chat
 from SpeechToText import record_and_transcribe
-from AssistantTools import Apple, Important_Stuff, ModelTools
+from AssistantTools import Apple, Important_Stuff, ModelTools, Testing_automation
 from pathlib import Path
 
 """
@@ -16,7 +16,7 @@ Line 118 - Class "General_LLM_Tools", full of tools that the LLM uses
 
 LLM = ("qwen2.5:3b")
 Has_tool_result = True
-Automation = True
+
 
 FAST_OPTIONS = {
     "num_ctx": 912,
@@ -46,7 +46,7 @@ while True:
     if "computer" in prompt.lower():
         messages = [{"role": "user", "content": prompt}]
 
-        if Automation:
+        if Testing_automation:
             tools = [
                 ModelTools.get_weather,
                 ModelTools.get_date_and_time,
