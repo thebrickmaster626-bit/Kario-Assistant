@@ -5,7 +5,6 @@ from SpeechToText import record_and_transcribe
 from AssistantTools import Apple, Important_Stuff, ModelTools
 from pathlib import Path
 
-
 """
 CODE GUIDE
 
@@ -17,7 +16,9 @@ Line 118 - Class "General_LLM_Tools", full of tools that the LLM uses
 
 LLM = ("qwen2.5:3b")
 Has_tool_result = True
-FAST_OPTIONS =  {
+Automation = True
+
+FAST_OPTIONS = {
     "num_ctx": 912,
     "num_predict": 120,
     "temperature": 0.1,
@@ -44,16 +45,27 @@ while True:
     prompt = record_and_transcribe()
     if "computer" in prompt.lower():
         messages = [{"role": "user", "content": prompt}]
-        tools = [
-            ModelTools.get_weather,
-            ModelTools.get_date_and_time,
-            ModelTools.search_the_web,
-            ModelTools.start_timer,
-            ModelTools.stop_timer,
-            ModelTools.stop_all_timers,
-            Apple.send_imessage,
-            Apple.call_number,
-        ]
+
+        if Automation:
+            tools = [
+                ModelTools.get_weather,
+                ModelTools.get_date_and_time,
+                ModelTools.search_the_web,
+                ModelTools.start_timer,
+                ModelTools.stop_timer,
+                ModelTools.stop_all_timers,
+                Apple.send_imessage,
+                Apple.call_number,
+            ]
+        else:
+            tools = [
+                ModelTools.get_weather,
+                ModelTools.get_date_and_time,
+                ModelTools.search_the_web,
+                ModelTools.start_timer,
+                ModelTools.stop_timer,
+                ModelTools.stop_all_timers,
+            ]
 
         # First request
         response = ollama.chat(
@@ -61,7 +73,7 @@ while True:
             messages=messages,
             tools=tools,
             think=False,
-            options=FAST_OPTIONS ,
+            options=FAST_OPTIONS,
         )
         response_text = (response.message.content or "").strip()
         if response_text:
@@ -115,7 +127,7 @@ while True:
                         "content": tool_result,
                     })
 
-                 # Ask the model for a *second* response after the tool results ONLY if the tool was to get data, if it is to execute actions then this will be skipped
+                # Ask the model for a *second* response after the tool results ONLY if the tool was to get data, if it is to execute actions then this will be skipped
                 if Has_tool_result:
                     final_response = chat(
                         model=LLM,

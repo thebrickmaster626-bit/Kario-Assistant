@@ -6,9 +6,6 @@ import subprocess
 import threading
 import time
 from datetime import datetime
-
-
-
 import requests
 from ddgs import DDGS
 
@@ -18,6 +15,7 @@ from SpeechToText import record_and_transcribe
 # True  -> do not swallow tool errors; raise and crash for debugging.
 # False -> return "Tool error: ..." and continue running.
 CRASH_ON_TOOL_ERROR = True
+Testing_automation = True
 
 # Important and miscellaneous stuff
 class Important_Stuff:
@@ -110,30 +108,35 @@ class Apple_Integration:
                 return
             else:
                 pass
-
-        script = f'''
-        tell application "Messages"
-            set targetService to 1st service whose service type = iMessage
-            set targetBuddy to buddy "{buddy}" of targetService
-            send "{message}" to targetBuddy
-        end tell
-        '''
-
-        subprocess.run(["osascript", "-e", script])
+        if not Testing_automation:
+            script = f'''
+            tell application "Messages"
+                set targetService to 1st service whose service type = iMessage
+                set targetBuddy to buddy "{buddy}" of targetService
+                send "{message}" to targetBuddy
+            end tell
+            '''
+            subprocess.run(["osascript", "-e", script])
+        else:
+            print("Automation blocked for testing.")
 
     # Calls the specified person with Facetime or Facetime audio
     @staticmethod
-    def call_number(phone_number, video=False):
+    def call_number(name, video=False):
+        buddy = Apple.get_phone_number(name)
         call_type = "video" if video else "audio"
 
-        script = f'''
-        tell application "FaceTime"
-            activate
-            call "{Apple.normalize_phone(phone_number)}" using {call_type}
-        end tell
-        '''
+        if not Testing_automation:
+            script = f'''
+            tell application "FaceTime"
+                activate
+                call "{Apple.normalize_phone(buddy)}" using {call_type}
+            end tell
+            '''
 
-        subprocess.run(["osascript", "-e", script])
+            subprocess.run(["osascript", "-e", script])
+        else:
+            print("Automation blocked for testing.")
 
     # Resumes or pauses spotify
     @staticmethod
