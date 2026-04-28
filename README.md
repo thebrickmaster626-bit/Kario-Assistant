@@ -64,6 +64,9 @@ ollama pull qwen2.5:3b
 python main.py
 ```
 
+## How to use
+Run the command above, and just say "hey computer" or "computer" and then continue the rest of your prompt.
+
 ## Notes
 
 - The default model may change over time.

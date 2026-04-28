@@ -11,9 +11,19 @@ from ddgs import DDGS
 
 from SpeechToText import record_and_transcribe
 
+"""
+CODE GUIDE
+
+Line 29: class "Important_Stuff"
+Line 61: class "Apple_Integration"
+Line 179: class "General_LLM_Tools"
+"""
+
 # Debug toggle:
 # True  -> do not swallow tool errors; raise and crash for debugging.
 # False -> return "Tool error: ..." and continue running.
+# If you wish to remove the ability to send and call people, set Testing_automation to true
+
 CRASH_ON_TOOL_ERROR = True
 Testing_automation = True
 

@@ -5,18 +5,8 @@ from SpeechToText import record_and_transcribe
 from AssistantTools import Apple, Important_Stuff, ModelTools, Testing_automation
 from pathlib import Path
 
-"""
-CODE GUIDE
-
-Line 15 - LLM model
-Line 19 - Class "important_stuff", full of important functions
-Line 48 - Class "Apple_integration", full of functions that integrate with MacOS
-Line 118 - Class "General_LLM_Tools", full of tools that the LLM uses
-"""
-
 LLM = ("qwen2.5:3b")
 Has_tool_result = True
-
 
 FAST_OPTIONS = {
     "num_ctx": 912,
