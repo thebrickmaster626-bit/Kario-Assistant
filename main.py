@@ -33,9 +33,16 @@ print(LLM)
 
 while True:
     prompt = record_and_transcribe()
-    if "computer" in prompt.lower():
-        messages = [{"role": "user", "content": prompt}]
-
+    if "computer" in prompt.lower() or "assistant" in prompt.lower():
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": prompt}
+        ]
+    if "timer" in prompt.lower() or "countdown" in prompt.lower():
+        messages = [
+            {"role": "system", "content": system_prompt}
+            {"role": "user", "content": prompt}
+        ]
         if Testing_automation:
             tools = [
                 ModelTools.get_weather,

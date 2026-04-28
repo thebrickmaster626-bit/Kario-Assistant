@@ -41,7 +41,7 @@ Tools available:
 
 Argument rules:
 - start_timer: hour, min, sec must be integers.
-- stop_timer: timer_time must be HH:MM:SS.
+- stop_timer: timer_time must be HH:MM:SS. If there is a 10 minute timer, you must input "00:10:00".
 - call_number: video must be true or false.
 
 Intent routing:

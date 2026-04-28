@@ -197,7 +197,7 @@ class General_LLM_Tools:
 
     # Starts a timer
     @staticmethod
-    def start_timer(hour, min, sec):
+    def start_timer(hour=0, min=0, sec=0):
         hour = int(hour)
         min = int(min)
         sec = int(sec)
