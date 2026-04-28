@@ -2,7 +2,7 @@ import ollama
 import json
 from ollama import chat
 from SpeechToText import record_and_transcribe
-from AssistantTools import Apple, Important_Stuff, ModelTools, timers
+from AssistantTools import Apple, Important_Stuff, ModelTools
 from pathlib import Path
 
 
