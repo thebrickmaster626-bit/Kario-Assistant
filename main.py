@@ -7,6 +7,7 @@ from pathlib import Path
 
 LLM = ("qwen2.5:3b")
 Has_tool_result = True
+Can_speak = False
 
 FAST_OPTIONS = {
     "num_ctx": 912,
@@ -32,7 +33,10 @@ print("LLM running! Model:")
 print(LLM)
 
 while True:
-    prompt = record_and_transcribe()
+    if Can_speak:
+        prompt = record_and_transcribe()
+    else:
+        prompt = input(">…")
     if "computer" in prompt.lower() or "assistant" in prompt.lower():
         messages = [
             {"role": "system", "content": system_prompt},
@@ -43,26 +47,16 @@ while True:
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": prompt}
         ]
-        if Testing_automation:
-            tools = [
-                ModelTools.get_weather,
-                ModelTools.get_date_and_time,
-                ModelTools.search_the_web,
-                ModelTools.start_timer,
-                ModelTools.stop_timer,
-                ModelTools.stop_all_timers,
-                Apple.send_imessage,
-                Apple.call_number,
-            ]
-        else:
-            tools = [
-                ModelTools.get_weather,
-                ModelTools.get_date_and_time,
-                ModelTools.search_the_web,
-                ModelTools.start_timer,
-                ModelTools.stop_timer,
-                ModelTools.stop_all_timers,
-            ]
+        tools = [
+            ModelTools.get_weather,
+            ModelTools.get_date_and_time,
+            ModelTools.search_the_web,
+            ModelTools.start_timer,
+            ModelTools.stop_timer,
+            ModelTools.stop_all_timers,
+            Apple.send_imessage,
+            Apple.call_number,
+        ]
 
         # First request
         response = ollama.chat(
