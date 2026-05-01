@@ -37,12 +37,7 @@ while True:
         prompt = record_and_transcribe()
     else:
         prompt = input(">…")
-    if "computer" in prompt.lower() or "assistant" in prompt.lower():
-        messages = [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": prompt}
-        ]
-    if "timer" in prompt.lower() or "countdown" in prompt.lower():
+    if "computer" in prompt.lower() or "assistant" in prompt.lower() or Can_speak == False:
         messages = [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": prompt}
