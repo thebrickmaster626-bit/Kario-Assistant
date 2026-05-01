@@ -67,8 +67,8 @@ while True:
 
         # If it did call any tools, handle them
         if response.message.tool_calls:
-            Has_tool_result = False
             for call in response.message.tool_calls:
+                Has_tool_result = False
                 name = call.function.name
                 args = call.function.arguments
                 if isinstance(args, str):
@@ -115,15 +115,15 @@ while True:
 
                 # Ask the model for a *second* response after the tool results ONLY if the tool was to get data, if it is to execute actions then this will be skipped
                 if Has_tool_result:
-                    final_response = chat(
+                    response = chat(
                         model=LLM,
                         messages=messages,
                         think=False,
                         options=FAST_OPTIONS_SECOND_PASS,
+                        tools=tools,
                     )
 
-                    print("Assistant after tools:", final_response.message.content)
-
-                    Important_Stuff.speak(final_response.message.content)
+                print("Assistant after tools:", response.message.content)
+                Important_Stuff.speak(response.message.content)
         else:
             Important_Stuff.speak(response_text)
