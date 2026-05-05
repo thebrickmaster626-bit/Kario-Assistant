@@ -108,3 +108,4 @@ assistant, and while using this you do not have to include "Hey computer" or "Co
 - Remove the class `Apple_Integration` in `AssistantTools.py` and rewrite the `speak` function in `AssistantTools.py` if
   you would like to make the whole thing cross-compatible. I suggest you take the 10 minutes of removing
   it all, as I do not have a Windows PC to test on and the time to manage a separate repository.
+- Expect frequent changes as I work on this code **A LOT**.
