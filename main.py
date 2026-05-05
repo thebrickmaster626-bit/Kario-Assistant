@@ -11,7 +11,7 @@ Can_speak = False
 
 FAST_OPTIONS = {
     "num_ctx": 912,
-    "num_predict": 120,
+    "num_predict": 60,
     "temperature": 0.1,
     "top_p": 0.9,
     "top_k": 16,
@@ -20,7 +20,7 @@ FAST_OPTIONS = {
 }
 FAST_OPTIONS_SECOND_PASS = {
     "num_ctx": 912,
-    "num_predict": 120,
+    "num_predict": 140,
     "temperature": 0.1,
     "top_p": 0.9,
     "top_k": 16,
@@ -36,7 +36,7 @@ while True:
     if Can_speak:
         prompt = record_and_transcribe()
     else:
-        prompt = input(">…")
+        prompt = input("> ")
     if "computer" in prompt.lower() or "assistant" in prompt.lower() or Can_speak == False:
         messages = [
             {"role": "system", "content": system_prompt},

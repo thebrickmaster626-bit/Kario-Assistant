@@ -6,6 +6,7 @@ import subprocess
 import threading
 import time
 from datetime import datetime
+from urllib.parse import quote_plus
 import requests
 from ddgs import DDGS
 
@@ -33,8 +34,11 @@ class Important_Stuff:
         pass
 
     @staticmethod
-    def speak(text):
-        subprocess.run(["say", text])
+    def speak(text, block=True):
+        if block:
+            subprocess.run(["say", text])
+        else:
+            subprocess.Popen(["say", text])
 
     @staticmethod
     def safe_call(func, args):
@@ -64,6 +68,14 @@ class Apple_Integration:
     def __init__(self):
         pass
 
+    @staticmethod
+    def escape_applescript_string(value):
+        text = "" if value is None else str(value)
+        text = text.replace("\\", "\\\\")
+        text = text.replace("\"", "\\\"")
+        text = text.replace("\r", " ").replace("\n", " ")
+        return text
+
     # Used to turn a phone number like +1 (123) 456 7890 to 11234567890 so that way it's cleaner
     @staticmethod
     def normalize_phone(number):
@@ -83,9 +95,10 @@ class Apple_Integration:
     # Uses the contacts app to get a person's phone number from: their first and/or last, or their nickname
     @staticmethod
     def get_phone_number(name):
+        safe_name = Apple.escape_applescript_string(name)
         script = f'''
         tell application "Contacts"
-            set thePerson to first person whose first name is "{name}" or last name is "{name}" or nickname is "{name}" or name contains "{name}"
+            set thePerson to first person whose first name is "{safe_name}" or last name is "{safe_name}" or nickname is "{safe_name}" or name contains "{safe_name}"
             set phoneList to value of every phone of thePerson
             return phoneList
         end tell
@@ -119,11 +132,13 @@ class Apple_Integration:
             else:
                 pass
         if not Testing_automation:
+            safe_buddy = Apple.escape_applescript_string(buddy)
+            safe_message = Apple.escape_applescript_string(message)
             script = f'''
             tell application "Messages"
                 set targetService to 1st service whose service type = iMessage
-                set targetBuddy to buddy "{buddy}" of targetService
-                send "{message}" to targetBuddy
+                set targetBuddy to buddy "{safe_buddy}" of targetService
+                send "{safe_message}" to targetBuddy
             end tell
             '''
             subprocess.run(["osascript", "-e", script])
@@ -137,10 +152,13 @@ class Apple_Integration:
         call_type = "video" if video else "audio"
 
         if not Testing_automation:
+            safe_buddy = Apple.escape_applescript_string(Apple.normalize_phone(buddy))
+            if not re.fullmatch(r"\d{10,11}", safe_buddy):
+                raise ValueError("Invalid phone number for FaceTime automation")
             script = f'''
             tell application "FaceTime"
                 activate
-                call "{Apple.normalize_phone(buddy)}" using {call_type}
+                call "{safe_buddy}" using {call_type}
             end tell
             '''
 
@@ -162,9 +180,10 @@ class Apple_Integration:
     # Plays a song, sadly this search feature cannot play a playlist. Also, it is currently unknown if it will continue playing songs that kinda match
     @staticmethod
     def play_song(playlist):
+        safe_playlist = quote_plus("" if playlist is None else str(playlist))
         script = f'''
         tell application "Spotify"
-            play track "spotify:search:{playlist}"
+            play track "spotify:search:{safe_playlist}"
         end tell
         '''
         subprocess.run(["osascript", "-e", script])
@@ -248,7 +267,8 @@ class General_LLM_Tools:
     # Searches the web, provides basic results
     @staticmethod
     def search_the_web(prompt):
-
+        Important_Stuff.speak("Hold on, let me look it up", False)
+        time.sleep(1.5)
         # 1) SEARCH: use DDGS to get the first search result
         print("debug:", "used web search, prompt used:", prompt)
         try:

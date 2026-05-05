@@ -4,4 +4,3 @@ ddgs==9.6.0
 numpy==2.2.6
 PyAudio==0.2.14
 faster-whisper==1.2.0
-

@@ -1,5 +1,7 @@
 # Kario
 
+<!-- TODO: add a GIF here -->
+
 Kario is a smart assistant powered by [Ollama](https://ollama.com). I built it to replace Siri.
 The project is still in active development, so expect bugs and sometimes frequent model changes.
 
@@ -7,23 +9,24 @@ The project is still in active development, so expect bugs and sometimes frequen
 
 Before installing, make sure you have:
 
-- Python 3.13 (recommended)
+- Python 3.13 (recommended, python 3.x works fine as well)
 - [Ollama](https://ollama.com)
 
 I currently test on Apple Silicon only. Windows is not officially supported yet, and some features require code changes
 to work there.
 
-### Recommended Hardware (Tested)
+### Recommended Hardware (Tested on M4 with 16GB RAM)
 
-- Apple Silicon (M3 or M4, M5 and future models are supported)
-- 16 GB RAM, 8 GB ram is most likely the bare minimum you can use
+- Apple Silicon (M3 or M4 for decent speed, M5 and future models are supported)
+- 16 GB RAM, 8 GB RAM is most likely the bare minimum you can use
 
 You can change the Ollama model if you want. For speed, I recommend models between 1B and 4B parameters. Also, if you
 use Intel Macs, expect it to be ***VERY*** slow.
 
 ## Setup Steps
 
-1. Clone the repository and enter the project folder:
+1. Clone the repository and enter the project folder (make sure your terminal is running from where you want the folder
+   to live):
 
 ```sh
 git clone https://github.com/thebrickmaster626-bit/Kario-Assistant
@@ -40,7 +43,7 @@ python3.13 -m venv .venv
 If that doesn't work, use the command below:
 
 ```sh
-python3.13 -m venv .venv
+python -m venv .venv
 source .venv/bin/activate
 ```
 
@@ -58,7 +61,13 @@ pip install -r requirements.txt
 ollama pull qwen2.5:3b
 ```
 
-5. Run the assistant:
+5. Run Ollama:
+
+```sh
+ollama serve
+```
+
+6. Run the assistant:
 
 ```sh
 python main.py
@@ -66,15 +75,36 @@ python main.py
 
 ## How to use
 
-Run the command above, and just say "hey computer" or "computer" and then continue the rest of your prompt. There is
+Run the command above, and just say "Hey computer" or "Computer" and then continue the rest of your prompt. There is
 currently no GUI, as I want the whole thing to be voice-oriented like Alexa or Siri. Also, please note the wake word
-detection is just seeing if the wakeword is in the prompt, so it may not be totally accurate.
+detection is just seeing if the wake word is in the prompt, so it may not be totally accurate. If you wish to block
+apple automation of all kinds, set `Testing_automation` to `True` in `AssistantTools.py`. This will block all
+applescript besides speech, while still allowing the LLM to use the functions if you wish to experiment. If you wish to
+not speak, set `Can_speak` to `False` in `main.py`. This will rely on you typing in the python console to speak to the
+assistant, and while using this you do not have to include "Hey computer" or "Computer".
+
+## Features
+
+### What's unique:
+
+- Uses an LLM rather than basic if-else parsing, allowing for more flexible and natural sounding commands as well as
+  some basic logic and chatting ability
+- A lot of it is local, as it only uses internet for weather, web search, FaceTime / FaceTime audio (can be automated without a web API but requires internet to use), and potentially iMessage if it not using SMS
+
+### What it can do:
+
+- It can search the web for accurate / up-to-date info
+- It can provide a weather forecast
+- It can manage timers (decently)
+- It can call or text (with AppleScript automation, it may ask for permissions the first time)
+- A lot of the features are local
+- No API key or paid program required for the built-in features
 
 ## Notes
 
 - The default model may change over time.
 - Keep at least 5 GB of free disk space for local model files.
 - macOS-only features currently include `say`, `osascript`, Contacts, Messages, FaceTime, and Spotify automation.
-- Remove the class `Apple_Integration` in `main.py` and rewrite the `say` function (in the same file) if you would like to make the whole thing cross-compatible. I suggest you take the 10 minutes of removing
-  it all (or just ask ChatGPT), as I do not have a Windows PC to test on and am not going to maintain an entirely
-  separate git repository. 
+- Remove the class `Apple_Integration` in `AssistantTools.py` and rewrite the `speak` function in `AssistantTools.py` if
+  you would like to make the whole thing cross-compatible. I suggest you take the 10 minutes of removing
+  it all, as I do not have a Windows PC to test on and the time to manage a separate repository.
