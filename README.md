@@ -9,7 +9,7 @@ The project is still in active development, so expect bugs and sometimes frequen
 
 Before installing, make sure you have:
 
-- Python 3.13 (recommended, python 3.x works fine as well)
+- Python 3.13 (recommended, python 3.9.x+ should work)
 - [Ollama](https://ollama.com)
 
 I currently test on Apple Silicon only. Windows is not officially supported yet, and some features require code changes
@@ -25,54 +25,19 @@ use Intel Macs, expect it to be ***VERY*** slow.
 
 ## Setup Steps
 
-1. Clone the repository and enter the project folder (make sure your terminal is running from where you want the folder
-   to live):
-
-```sh
-git clone https://github.com/thebrickmaster626-bit/Kario-Assistant
-cd Kario-Assistant
-```
-
-2. Create and activate a virtual environment:
-
-```sh
-python3.13 -m venv .venv
-. .venv/bin/activate
-```
-
-If that doesn't work, use the command below:
-
-```sh
-python -m venv .venv
-source .venv/bin/activate
-```
-
-If `python` or `python3` already points to Python 3.13 on your machine, you can use that instead.
-
-3. Install libraries:
-
-```sh
-pip install -r requirements.txt
-```
-
-4. Pull the Ollama model:
-
-```sh
-ollama pull qwen2.5:3b
-```
-
-5. Run Ollama:
+1. Download installation.command <!-- TODO: make this download the file --> here.
+2. Double-click the file, making sure you are on macOS. This will clone the Git and install necessary packages, usually
+   at your home folder. Navigate to the desired folder to clone to by doing `cd /path/to/your/clone/destination/`. Make
+   sure to replace that path with where you actually want the project to be.
+3. Make sure Ollama is running by running the following command:
 
 ```sh
 ollama serve
 ```
-If you ever want to stop running the server, do `pkill ollama`.
 
-6. Run the assistant:
-
-```sh
-python main.py
-```
+If you are trying to run the setup file on windows, please note that the `.command` file type is macOS exclusive.
+Instead, copy and paste the commands in the file to your terminal. You should be able to open the command in any boring
+text editor.
 
 ## How to use
 
@@ -90,7 +55,8 @@ assistant, and while using this you do not have to include "Hey computer" or "Co
 
 - Uses an LLM rather than basic if-else parsing, allowing for more flexible and natural sounding commands as well as
   some basic logic and chatting ability
-- A lot of it is local, as it only uses internet for weather, web search, FaceTime / FaceTime audio (can be automated without a web API but requires internet to use), and potentially iMessage if it not using SMS
+- A lot of it is local, as it only uses internet for weather, web search, FaceTime / FaceTime audio (can be automated
+  without internet but requires internet to use), and potentially iMessage if it is not using SMS.
 
 ### What it can do:
 
