@@ -66,6 +66,7 @@ ollama pull qwen2.5:3b
 ```sh
 ollama serve
 ```
+If you ever want to stop running the server, do `pkill ollama`.
 
 6. Run the assistant:
 
