@@ -36,8 +36,8 @@ ollama serve
 ```
 
 If you are trying to run the setup file on windows, please note that the `.command` file type is macOS exclusive.
-Instead, copy and paste the commands in the file to your terminal. You should be able to open the command in any boring
-text editor.
+Instead, copy and paste the commands in the file to your terminal. You should be able to open the `.command` in any boring
+text editor and the commands should work on windows or linux decently, too.
 
 ## How to use
 
