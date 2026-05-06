@@ -30,7 +30,8 @@ use Intel Macs, expect it to be ***VERY*** slow.
 2. Double-click the file, making sure you are on macOS. This will clone the Git and install necessary packages, usually
    at your home folder. Navigate to the desired folder to clone to by doing `cd /path/to/your/clone/destination/`. Make
    sure to replace that path with where you actually want the project to be.
-3. Make sure Ollama is running by running the following command:
+3. If macOS rejects it, you can simply copy-and-paste the commands OR you can go to system settings > privacy settings > scroll down > and allow it.
+4. Make sure Ollama is on by running the following command:
 
 ```sh
 ollama serve
