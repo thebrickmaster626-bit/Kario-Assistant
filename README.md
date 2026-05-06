@@ -26,9 +26,7 @@ use Intel Macs, expect it to be ***VERY*** slow.
 
 ## Setup Steps
 
-1. Download
-   installation.command <a href="https://raw.githubusercontent.com/thebrickmaster626-bit/Kario-Assistant/refs/heads/main/Installation/installation.command" download>
-   Here.</a>
+1. Download installation.command from the repository.
 2. Double-click the file, making sure you are on macOS. This will clone the Git and install necessary packages, usually
    at your home folder. Navigate to the desired folder to clone to by doing `cd /path/to/your/clone/destination/`. Make
    sure to replace that path with where you actually want the project to be.
