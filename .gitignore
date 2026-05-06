@@ -221,3 +221,4 @@ __marimo__/
 # USB and testing junk
 ._*
 .wav
+test.py
