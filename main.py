@@ -6,11 +6,16 @@ from pathlib import Path
 import keyring
 from cryptography.fernet import Fernet
 import json
+from rich.console import Console
+from rich.markdown import Markdown
 
-LLM = ("Qwen2.5:3b")
+console = Console()
+
+LLM = "ministral-3:3b"
 Has_tool_result = True
 Can_speak = False
 history = Path("chathistory.txt")
+username = "Salvatore"
 
 if keyring.get_password("Kario", "Keyring_encryption_backend") is None:
     key = Fernet.generate_key().decode()
@@ -35,32 +40,23 @@ def decrypt(text):
     decrypted = fernet.decrypt(text.encode()).decode()
     return decrypted
 
-FAST_OPTIONS = {
-    "num_ctx": 2560,
-    "num_predict": 270,
-    "temperature": 0.1,
-    "top_p": 0.9,
-    "top_k": 16,
-    "repeat_penalty": 1.06,
-    "num_thread": 10,
-}
-FAST_OPTIONS_SECOND_PASS = {
-    "num_ctx": 2560,
-    "num_predict": 270,
-    "temperature": 0.1,
-    "top_p": 0.9,
-    "top_k": 16,
-    "repeat_penalty": 1.06,
-    "num_thread": 10,
+OPTIONS = {
+    "num_ctx": 3072,
+    "num_predict": 280,
+    "temperature": 0.25,
+    "top_p": 0.88,
+    "top_k": 24,
+    "repeat_penalty": 1.14,
+    "num_thread": 8,
 }
 
 system_prompt = Path("Prompt.txt").read_text(encoding="utf-8")
-print("LLM running! Model:")
-print(LLM)
+console.print(Markdown("LLM running! Model:"))
+console.print(Markdown(LLM))
 
 if history.exists():
     if history.read_bytes() == b"":
-        messages = encrypt(json.dumps([{"role": "system", "content": system_prompt}])).encode()
+        messages = encrypt(json.dumps([{"role": "system", "content": system_prompt}, {"role": "system", "content": f"The user's name is {username}."}])).encode()
         history.write_bytes(messages)
         messages = None
     else:
@@ -98,11 +94,11 @@ while True:
             messages=json.loads(decrypt(history.read_bytes().decode())),
             tools=tools,
             think=False,
-            options=FAST_OPTIONS,
+            options=OPTIONS,
         )
         response_text = (response.message.content or "").strip()
         if response_text:
-            print(response_text)
+            console.print(Markdown(response_text))
 
         # If it did call any tools, handle them
         if response.message.tool_calls:
@@ -116,8 +112,8 @@ while True:
                     except json.JSONDecodeError:
                         args = {}
 
-                print(f"ran tool {name}")
-                print(f"args: {args}")
+                console.print(Markdown(f"ran tool {name}"))
+                console.print(Markdown(f"args: {args}"))
                 if name == "get_weather":
                     tool_result = ModelTools.get_weather()
                     Has_tool_result = True
@@ -160,7 +156,7 @@ while True:
                         model=LLM,
                         messages=json.loads(decrypt(history.read_bytes().decode())),
                         think=False,
-                        options=FAST_OPTIONS_SECOND_PASS,
+                        options=OPTIONS,
                         tools=tools,
                     )
                 if response.message.content != "":
@@ -175,15 +171,15 @@ while True:
                         })
                     history.write_bytes(encrypt(json.dumps(messages)).encode())
                     messages = None
-                    print(response.message.content)
+                    console.print(Markdown(response.message.content))
                     Important_Stuff.speak(response.message.content)
         else:
-            print(response.message)
             Important_Stuff.speak(response_text)
 
         # clear chat history to preserve space and memory
         messages = json.loads(decrypt(history.read_bytes().decode()))
-        if len(messages) > 13:
-            print("too many messages! cutting off old ones...")
-            messages.pop(1)
+        if len(messages) > 14:
+            console.print(Markdown("too many messages! cutting off old ones..."))
+            messages.pop(2)
+            messages.pop(2)
         history.write_bytes(encrypt(json.dumps(messages)).encode())

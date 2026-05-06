@@ -35,10 +35,16 @@ class Important_Stuff:
 
     @staticmethod
     def speak(text, block=True):
+        filtered = (text.replace("\n", " ")
+                    .replace("\r", " ")
+                    .replace("\t", " ")
+                    .replace("-", " ")
+                    .replace("*", "")
+                    .replace("•", " "))
         if block:
-            subprocess.run(["say", text])
+            subprocess.run(["say", filtered])
         else:
-            subprocess.Popen(["say", text])
+            subprocess.Popen(["say", filtered])
 
     @staticmethod
     def safe_call(func, args):
