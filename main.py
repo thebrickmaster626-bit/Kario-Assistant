@@ -10,6 +10,7 @@ import json
 LLM = ("qwen2.5:3b")
 Has_tool_result = True
 Can_speak = False
+history = Path("chathistory.txt")
 
 if keyring.get_password("Kario", "Keyring_encryption_backend") is None:
     key = Fernet.generate_key().decode()
@@ -27,13 +28,11 @@ def encrypt(text):
 
     fernet = Fernet(password.encode())
     encrypted = fernet.encrypt(text.encode())
-    print(encrypted)
     return encrypted.decode()
 
 def decrypt(text):
     fernet = Fernet(keyring.get_password("Kario", "Keyring_encryption_backend").encode())
     decrypted = fernet.decrypt(text.encode()).decode()
-    print(decrypted)
     return decrypted
 
 FAST_OPTIONS = {
@@ -59,7 +58,13 @@ system_prompt = Path("Prompt.txt").read_text(encoding="utf-8")
 print("LLM running! Model:")
 print(LLM)
 
-messages = encrypt(json.dumps([{"role": "system", "content": system_prompt}]))
+if history.exists():
+    if history.read_bytes() == b"":
+        messages = encrypt(json.dumps([{"role": "system", "content": system_prompt}])).encode()
+        history.write_bytes(messages)
+        messages = None
+else:
+    history.touch()
 
 while True:
     if Can_speak:
@@ -67,9 +72,10 @@ while True:
     else:
         prompt = input("> ")
     if "computer" in prompt.lower() or "assistant" in prompt.lower() or Can_speak == False:
-        messages = json.loads(decrypt(messages))
+        messages = json.loads(decrypt(history.read_bytes().decode()))
         messages.append({'role': 'user', 'content': prompt})
-        messages = encrypt(json.dumps(messages))
+        history.write_bytes(encrypt(json.dumps(messages)).encode())
+        messages = None
         tools = [
             ModelTools.get_weather,
             ModelTools.get_date_and_time,
@@ -84,7 +90,7 @@ while True:
         # First request
         response = ollama.chat(
             model=LLM,
-            messages=json.loads(decrypt(messages)),
+            messages=json.loads(decrypt(history.read_bytes().decode())),
             tools=tools,
             think=False,
             options=FAST_OPTIONS,
@@ -135,35 +141,36 @@ while True:
                     tool_result = "Unknown tool"
 
                 if Has_tool_result:
-                    messages = json.loads(decrypt(messages))
+                    messages = json.loads(decrypt(history.read_bytes().decode()))
                     messages.append({
                         "role": "tool",
                         "tool_name": name,
                         "content": tool_result,
                     })
-                    messages = encrypt(json.dumps(messages))
+                    history.write_bytes(encrypt(json.dumps(messages)).encode())
 
                 # Ask the model for a *second* response after the tool results ONLY if the tool was to get data, if it is to execute actions then this will be skipped
                 if Has_tool_result:
                     response = chat(
                         model=LLM,
-                        messages=json.loads(decrypt(messages)),
+                        messages=json.loads(decrypt(history.read_bytes().decode())),
                         think=False,
                         options=FAST_OPTIONS_SECOND_PASS,
                         tools=tools,
                     )
                 if response.message.content != "":
-                    messages = json.loads(decrypt(messages))
+                    messages = json.loads(decrypt(history.read_bytes().decode()))
+                    messages.pop()
                     messages.append({'role': 'assistant', 'content': response.message.content})
-                    messages = encrypt(json.dumps(messages))
-                    print(response.message.content)
+                    history.write_bytes(encrypt(json.dumps(messages)).encode())
+                    messages = None
                     Important_Stuff.speak(response.message.content)
         else:
             print(response.message)
             Important_Stuff.speak(response_text)
 
         # clear chat history to preserve space and memory
-        messages = json.loads(decrypt(messages))
-        if len(messages) > 13:
+        messages = json.loads(decrypt(history.read_bytes().decode()))
+        if len(messages) > 15:
             messages.pop(1)
-        messages = encrypt(json.dumps(messages))
+        history.write_bytes(encrypt(json.dumps(messages)).encode())
