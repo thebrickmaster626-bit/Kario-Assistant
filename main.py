@@ -56,12 +56,12 @@ console.print(Markdown(LLM))
 
 if history.exists():
     if history.read_bytes() == b"":
-        messages = encrypt(json.dumps([{"role": "system", "content": system_prompt}, {"role": "system", "content": f"The user's name is {username}."}])).encode()
+        messages = encrypt(json.dumps([{"role": "system", "content": system_prompt}, {"role": "system", "content": f"The user's name is {username} and today's date is {ModelTools.get_date_and_time()}."}])).encode()
         history.write_bytes(messages)
         messages = None
     else:
         if input("Would you like to clear chat history (y/n):") == "y":
-            messages = encrypt(json.dumps([{"role": "system", "content": system_prompt}])).encode()
+            messages = encrypt(json.dumps([{"role": "system", "content": system_prompt}, {"role": "system", "content": f"The user's name is {username} and today's date is {ModelTools.get_date_and_time()}."}])).encode()
             history.write_bytes(messages)
             messages = None
 else:
@@ -74,7 +74,8 @@ while True:
         prompt = input("> ")
     if "computer" in prompt.lower() or "assistant" in prompt.lower() or Can_speak == False:
         messages = json.loads(decrypt(history.read_bytes().decode()))
-        messages.append({'role': 'user', 'content': prompt})
+        messages.append({"role": "user", "content": prompt})
+        messages[1] = {"role": "system", "content": f"The user's name is {username} and today's date is {ModelTools.get_date_and_time()}."}
         history.write_bytes(encrypt(json.dumps(messages)).encode())
         messages = None
         tools = [
@@ -163,7 +164,7 @@ while True:
                     messages = json.loads(decrypt(history.read_bytes().decode()))
                     if Has_tool_result:
                         messages.pop()
-                        messages.append({'role': 'assistant', 'content': response.message.content})
+                        messages.append({"role": "assistant", "content": response.message.content})
                     else:
                         messages.append({
                             "role": "assistant",
