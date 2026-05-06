@@ -1,36 +1,65 @@
 import ollama
-import json
 from ollama import chat
 from SpeechToText import record_and_transcribe
-from AssistantTools import Apple, Important_Stuff, ModelTools, Testing_automation
+from AssistantTools import Apple, Important_Stuff, ModelTools
 from pathlib import Path
+import keyring
+from cryptography.fernet import Fernet
+import json
 
 LLM = ("qwen2.5:3b")
 Has_tool_result = True
 Can_speak = False
 
+if keyring.get_password("Kario", "Keyring_encryption_backend") is None:
+    key = Fernet.generate_key().decode()
+
+    keyring.set_password("Kario", "Keyring_encryption_backend", key)
+    key = None
+
+def encrypt(text):
+    password = keyring.get_password("Kario", "Keyring_encryption_backend")
+
+    if password is None:
+        key = Fernet.generate_key().decode()
+        keyring.set_password("Kario", "Keyring_encryption_backend", key)
+        password = key
+
+    fernet = Fernet(password.encode())
+    encrypted = fernet.encrypt(text.encode())
+    print(encrypted)
+    return encrypted.decode()
+
+def decrypt(text):
+    fernet = Fernet(keyring.get_password("Kario", "Keyring_encryption_backend").encode())
+    decrypted = fernet.decrypt(text.encode()).decode()
+    print(decrypted)
+    return decrypted
+
 FAST_OPTIONS = {
-    "num_ctx": 912,
-    "num_predict": 60,
+    "num_ctx": 2560,
+    "num_predict": 240,
     "temperature": 0.1,
     "top_p": 0.9,
     "top_k": 16,
     "repeat_penalty": 1.06,
-    "num_thread": 11,
+    "num_thread": 10,
 }
 FAST_OPTIONS_SECOND_PASS = {
-    "num_ctx": 912,
-    "num_predict": 140,
+    "num_ctx": 2560,
+    "num_predict": 240,
     "temperature": 0.1,
     "top_p": 0.9,
     "top_k": 16,
     "repeat_penalty": 1.06,
-    "num_thread": 11,
+    "num_thread": 10,
 }
 
 system_prompt = Path("Prompt.txt").read_text(encoding="utf-8")
 print("LLM running! Model:")
 print(LLM)
+
+messages = encrypt(json.dumps([{"role": "system", "content": system_prompt}]))
 
 while True:
     if Can_speak:
@@ -38,10 +67,9 @@ while True:
     else:
         prompt = input("> ")
     if "computer" in prompt.lower() or "assistant" in prompt.lower() or Can_speak == False:
-        messages = [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": prompt}
-        ]
+        messages = json.loads(decrypt(messages))
+        messages.append({'role': 'user', 'content': prompt})
+        messages = encrypt(json.dumps(messages))
         tools = [
             ModelTools.get_weather,
             ModelTools.get_date_and_time,
@@ -56,7 +84,7 @@ while True:
         # First request
         response = ollama.chat(
             model=LLM,
-            messages=messages,
+            messages=json.loads(decrypt(messages)),
             tools=tools,
             think=False,
             options=FAST_OPTIONS,
@@ -107,23 +135,35 @@ while True:
                     tool_result = "Unknown tool"
 
                 if Has_tool_result:
+                    messages = json.loads(decrypt(messages))
                     messages.append({
                         "role": "tool",
                         "tool_name": name,
                         "content": tool_result,
                     })
+                    messages = encrypt(json.dumps(messages))
 
                 # Ask the model for a *second* response after the tool results ONLY if the tool was to get data, if it is to execute actions then this will be skipped
                 if Has_tool_result:
                     response = chat(
                         model=LLM,
-                        messages=messages,
+                        messages=json.loads(decrypt(messages)),
                         think=False,
                         options=FAST_OPTIONS_SECOND_PASS,
                         tools=tools,
                     )
-
-                print("Assistant after tools:", response.message.content)
-                Important_Stuff.speak(response.message.content)
+                if response.message.content != "":
+                    messages = json.loads(decrypt(messages))
+                    messages.append({'role': 'assistant', 'content': response.message.content})
+                    messages = encrypt(json.dumps(messages))
+                    print(response.message.content)
+                    Important_Stuff.speak(response.message.content)
         else:
+            print(response.message)
             Important_Stuff.speak(response_text)
+
+        # clear chat history to preserve space and memory
+        messages = json.loads(decrypt(messages))
+        if len(messages) > 13:
+            messages.pop(1)
+        messages = encrypt(json.dumps(messages))
