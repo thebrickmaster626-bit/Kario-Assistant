@@ -1,8 +1,6 @@
 # Kario
 
-<video autoplay loop muted playsinline>
-  <source src="Assets/My%20Movie.mp4" type="video/mp4">
-</video>
+![Demo of Kario](./Assets/DEMO.png)
 
 Kario is a smart assistant powered by [Ollama](https://ollama.com). I built it to replace Siri.
 The project is still in active development, so expect bugs and sometimes frequent model changes.
