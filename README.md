@@ -13,8 +13,7 @@ Before installing, make sure you have:
 - [Ollama](https://ollama.com)
 
 I currently test on Apple Silicon only. Windows and Linux is not officially supported yet, and some features require
-code changes
-to work there.
+code changes to work there.
 
 ### Recommended Hardware (Tested on M4 with 16GB RAM)
 
@@ -30,7 +29,8 @@ use Intel Macs, expect it to be ***VERY*** slow.
 2. Double-click the file, making sure you are on macOS. This will clone the Git and install necessary packages, usually
    at your home folder. Navigate to the desired folder to clone to by doing `cd /path/to/your/clone/destination/`. Make
    sure to replace that path with where you actually want the project to be.
-3. If macOS rejects it, you can simply copy-and-paste the commands OR you can go to system settings > privacy settings > scroll down > and allow it.
+3. If macOS rejects it, you can simply copy-and-paste the commands OR you can go to system settings > privacy settings >
+   scroll down > and allow it.
 4. Make sure Ollama is on by running the following command:
 
 ```sh
@@ -79,3 +79,7 @@ assistant, and while using this you do not have to include "Hey computer" or "Co
   you would like to make the whole thing cross-compatible. I suggest you take the 10 minutes of removing
   it all, as I do not have a Windows or Linux PC to test on and the time to manage a separate repository.
 - Expect frequent changes as I work on this code **A LOT**.
+- It may feel a bit slow at first if you just recently changed the model or just recently started up Ollama, but just
+  use it a bit, and it should fix it.
+- Be patient! LLMs are slow because they have to do more computational math rather than just if-else. It is worth it
+  though, responses are much more natural and smarter! I try my best to keep LLMs at max speed while preserving quality.
