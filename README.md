@@ -1,6 +1,6 @@
 # Kario
 
-<!-- TODO: add a GIF here -->
+<!-- TODO: add a demo GIF here -->
 
 Kario is a smart assistant powered by [Ollama](https://ollama.com). I built it to replace Siri.
 The project is still in active development, so expect bugs and sometimes frequent model changes.
@@ -9,10 +9,11 @@ The project is still in active development, so expect bugs and sometimes frequen
 
 Before installing, make sure you have:
 
-- Python 3.13 (recommended, python 3.9.x+ should work)
+- Python 3.13 (recommended, but python 3.9.x+ should work)
 - [Ollama](https://ollama.com)
 
-I currently test on Apple Silicon only. Windows is not officially supported yet, and some features require code changes
+I currently test on Apple Silicon only. Windows and Linux is not officially supported yet, and some features require
+code changes
 to work there.
 
 ### Recommended Hardware (Tested on M4 with 16GB RAM)
@@ -25,7 +26,9 @@ use Intel Macs, expect it to be ***VERY*** slow.
 
 ## Setup Steps
 
-1. Download installation.command <!-- TODO: make this download the file --> here.
+1. Download
+   installation.command <a href="https://raw.githubusercontent.com/thebrickmaster626-bit/Kario-Assistant/refs/heads/main/Installation/installation.command" download>
+   Here.</a>
 2. Double-click the file, making sure you are on macOS. This will clone the Git and install necessary packages, usually
    at your home folder. Navigate to the desired folder to clone to by doing `cd /path/to/your/clone/destination/`. Make
    sure to replace that path with where you actually want the project to be.
@@ -36,7 +39,8 @@ ollama serve
 ```
 
 If you are trying to run the setup file on windows, please note that the `.command` file type is macOS exclusive.
-Instead, copy and paste the commands in the file to your terminal. You should be able to open the `.command` in any boring
+Instead, copy and paste the commands in the file to your terminal. You should be able to open the `.command` in any
+boring
 text editor and the commands should work on windows or linux decently, too.
 
 ## How to use
@@ -74,5 +78,5 @@ assistant, and while using this you do not have to include "Hey computer" or "Co
 - macOS-only features currently include `say`, `osascript`, Contacts, Messages, FaceTime, and Spotify automation.
 - Remove the class `Apple_Integration` in `AssistantTools.py` and rewrite the `speak` function in `AssistantTools.py` if
   you would like to make the whole thing cross-compatible. I suggest you take the 10 minutes of removing
-  it all, as I do not have a Windows PC to test on and the time to manage a separate repository.
+  it all, as I do not have a Windows or Linux PC to test on and the time to manage a separate repository.
 - Expect frequent changes as I work on this code **A LOT**.
