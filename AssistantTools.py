@@ -142,14 +142,16 @@ class Apple_Integration:
             end tell
             '''
             subprocess.run(["osascript", "-e", script])
+            Important_Stuff.speak(f"Message sent to {buddy} saying {safe_message}")
         else:
-            print("Automation blocked for testing.")
+            print("Automation blocked for testing")
 
     # Calls the specified person with Facetime or Facetime audio
     @staticmethod
     def call_number(name, video=False):
+        call_type = bool(video)
         buddy = Apple.get_phone_number(name)
-        call_type = "video" if video else "audio"
+        call_type = "video" if call_type else "audio"
 
         if not Testing_automation:
             safe_buddy = Apple.escape_applescript_string(Apple.normalize_phone(buddy))
@@ -164,7 +166,7 @@ class Apple_Integration:
 
             subprocess.run(["osascript", "-e", script])
         else:
-            print("Automation blocked for testing.")
+            print("Automation blocked for testing")
 
     # Resumes or pauses spotify
     @staticmethod

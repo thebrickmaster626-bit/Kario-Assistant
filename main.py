@@ -7,7 +7,7 @@ import keyring
 from cryptography.fernet import Fernet
 import json
 
-LLM = ("qwen2.5:3b")
+LLM = ("Qwen2.5:3b")
 Has_tool_result = True
 Can_speak = False
 history = Path("chathistory.txt")
@@ -37,7 +37,7 @@ def decrypt(text):
 
 FAST_OPTIONS = {
     "num_ctx": 2560,
-    "num_predict": 240,
+    "num_predict": 270,
     "temperature": 0.1,
     "top_p": 0.9,
     "top_k": 16,
@@ -46,7 +46,7 @@ FAST_OPTIONS = {
 }
 FAST_OPTIONS_SECOND_PASS = {
     "num_ctx": 2560,
-    "num_predict": 240,
+    "num_predict": 270,
     "temperature": 0.1,
     "top_p": 0.9,
     "top_k": 16,
@@ -63,6 +63,11 @@ if history.exists():
         messages = encrypt(json.dumps([{"role": "system", "content": system_prompt}])).encode()
         history.write_bytes(messages)
         messages = None
+    else:
+        if input("Would you like to clear chat history (y/n):") == "y":
+            messages = encrypt(json.dumps([{"role": "system", "content": system_prompt}])).encode()
+            history.write_bytes(messages)
+            messages = None
 else:
     history.touch()
 
@@ -160,10 +165,17 @@ while True:
                     )
                 if response.message.content != "":
                     messages = json.loads(decrypt(history.read_bytes().decode()))
-                    messages.pop()
-                    messages.append({'role': 'assistant', 'content': response.message.content})
+                    if Has_tool_result:
+                        messages.pop()
+                        messages.append({'role': 'assistant', 'content': response.message.content})
+                    else:
+                        messages.append({
+                            "role": "assistant",
+                            "content": "Tool ran successfully.",
+                        })
                     history.write_bytes(encrypt(json.dumps(messages)).encode())
                     messages = None
+                    print(response.message.content)
                     Important_Stuff.speak(response.message.content)
         else:
             print(response.message)
@@ -171,6 +183,7 @@ while True:
 
         # clear chat history to preserve space and memory
         messages = json.loads(decrypt(history.read_bytes().decode()))
-        if len(messages) > 15:
+        if len(messages) > 13:
+            print("too many messages! cutting off old ones...")
             messages.pop(1)
         history.write_bytes(encrypt(json.dumps(messages)).encode())
