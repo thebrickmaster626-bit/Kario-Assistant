@@ -222,3 +222,6 @@ __marimo__/
 ._*
 .wav
 test.py
+
+# A file for chat history
+chathistory.txt
