@@ -61,7 +61,7 @@ if history.exists():
         messages = None
     else:
         if input("Would you like to clear chat history (y/n):") == "y":
-            messages = encrypt(json.dumps([{"role": "system", "content": system_prompt}])).encode()
+            messages = encrypt(json.dumps([{"role": "system", "content": system_prompt}, {"role": "system", "content": f"The user's name is {username} and today's date is {ModelTools.get_date_and_time()}."}])).encode()
             history.write_bytes(messages)
             messages = None
 else:
@@ -75,7 +75,7 @@ while True:
     if "computer" in prompt.lower() or "assistant" in prompt.lower() or Can_speak == False:
         messages = json.loads(decrypt(history.read_bytes().decode()))
         messages.append({"role": "user", "content": prompt})
-        # messages[1] = {"role": "system", "content": f"The user's name is {username} and today's date is {ModelTools.get_date_and_time()}."}
+        messages[1] = {"role": "system", "content": f"The user's name is {username} and today's date is {ModelTools.get_date_and_time()}."}
         history.write_bytes(encrypt(json.dumps(messages)).encode())
         messages = None
         tools = [
@@ -176,7 +176,6 @@ while True:
             messages.append({"role": "assistant", "content": response.message.content})
             history.write_bytes(encrypt(json.dumps(messages)).encode())
             messages = None
-            print(decrypt(history.read_bytes().decode()))
 
         # clear chat history to preserve space and memory
         messages = json.loads(decrypt(history.read_bytes().decode()))
