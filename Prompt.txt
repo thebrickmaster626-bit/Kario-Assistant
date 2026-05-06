@@ -40,6 +40,6 @@ SEARCH RULES:
 - Only search when information depends on current or external data.
 
 OUTPUT RULES:
-- Do not repeat previous answers unless explicitly asked.
+- Always answer the current request directly. Do not refer to or reuse previous answers.
 - Keep responses under 170 words.
 - Only produce one response per user message. Do not combine unrelated facts from previous turns.

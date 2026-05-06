@@ -61,7 +61,7 @@ if history.exists():
         messages = None
     else:
         if input("Would you like to clear chat history (y/n):") == "y":
-            messages = encrypt(json.dumps([{"role": "system", "content": system_prompt}, {"role": "system", "content": f"The user's name is {username} and today's date is {ModelTools.get_date_and_time()}."}])).encode()
+            messages = encrypt(json.dumps([{"role": "system", "content": system_prompt}])).encode()
             history.write_bytes(messages)
             messages = None
 else:
@@ -75,12 +75,11 @@ while True:
     if "computer" in prompt.lower() or "assistant" in prompt.lower() or Can_speak == False:
         messages = json.loads(decrypt(history.read_bytes().decode()))
         messages.append({"role": "user", "content": prompt})
-        messages[1] = {"role": "system", "content": f"The user's name is {username} and today's date is {ModelTools.get_date_and_time()}."}
+        # messages[1] = {"role": "system", "content": f"The user's name is {username} and today's date is {ModelTools.get_date_and_time()}."}
         history.write_bytes(encrypt(json.dumps(messages)).encode())
         messages = None
         tools = [
             ModelTools.get_weather,
-            ModelTools.get_date_and_time,
             ModelTools.search_the_web,
             ModelTools.start_timer,
             ModelTools.stop_timer,
@@ -136,9 +135,6 @@ while True:
                 elif name == "call_number":
                     Important_Stuff.safe_call(Apple.call_number, args)
                     Has_tool_result = False
-                elif name == "get_date_and_time":
-                    tool_result = ModelTools.get_date_and_time()
-                    Has_tool_result = True
                 else:
                     tool_result = "Unknown tool"
 
@@ -176,10 +172,15 @@ while True:
                     Important_Stuff.speak(response.message.content)
         else:
             Important_Stuff.speak(response_text)
+            messages = json.loads(decrypt(history.read_bytes().decode()))
+            messages.append({"role": "assistant", "content": response.message.content})
+            history.write_bytes(encrypt(json.dumps(messages)).encode())
+            messages = None
+            print(decrypt(history.read_bytes().decode()))
 
         # clear chat history to preserve space and memory
         messages = json.loads(decrypt(history.read_bytes().decode()))
-        if len(messages) > 14:
+        if len(messages) > 10:
             console.print(Markdown("too many messages! cutting off old ones..."))
             messages.pop(2)
             messages.pop(2)
