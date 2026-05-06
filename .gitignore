@@ -223,5 +223,5 @@ __marimo__/
 .wav
 test.py
 
-# A file for chat history
+# A file for chat history, while it is encrypted i do not want git to track it
 chathistory.txt
