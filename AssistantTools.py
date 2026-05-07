@@ -25,7 +25,7 @@ Line 179: class "General_LLM_Tools"
 # False -> return "Tool error: ..." and continue running.
 # If you wish to remove the ability to send and call people, set Testing_automation to true
 
-CRASH_ON_TOOL_ERROR = True
+CRASH_ON_TOOL_ERROR = False
 Testing_automation = True
 
 # Important and miscellaneous stuff
@@ -40,7 +40,8 @@ class Important_Stuff:
                     .replace("\t", " ")
                     .replace("-", " ")
                     .replace("*", "")
-                    .replace("•", " "))
+                    .replace("•", " ")
+                    .replace("/", "slash"))
         if block:
             subprocess.run(["say", filtered])
         else:
@@ -67,6 +68,13 @@ class Important_Stuff:
     @staticmethod
     def alert():
         print("Alert")
+
+    @staticmethod
+    def better_bool(so_called_boolean):
+        if str(so_called_boolean).lower() == "true" or str(so_called_boolean).lower() == "yes" or str(so_called_boolean).lower() == "1":
+            return True
+        else:
+            return False
 
 # Functions that integrate the assistant with MacOS
 class Apple_Integration:
@@ -155,7 +163,7 @@ class Apple_Integration:
     # Calls the specified person with Facetime or Facetime audio
     @staticmethod
     def call_number(name, video=False):
-        call_type = bool(video)
+        call_type = Important_Stuff.better_bool(video)
         buddy = Apple.get_phone_number(name)
         call_type = "video" if call_type else "audio"
 
@@ -196,6 +204,7 @@ class Apple_Integration:
         '''
         subprocess.run(["osascript", "-e", script])
         print("Playing Spotify")
+
 
 Apple = Apple_Integration()
 
@@ -275,13 +284,13 @@ class General_LLM_Tools:
     # Searches the web, provides basic results
     @staticmethod
     def search_the_web(prompt):
+        search = f"{prompt}"
         Important_Stuff.speak("Hold on, let me look it up", False)
-        time.sleep(1.5)
         # 1) SEARCH: use DDGS to get the first search result
         print("debug:", "used web search, prompt used:", prompt)
         try:
             with DDGS() as ddgs:
-                results = ddgs.text(prompt, max_results=4)
+                results = ddgs.text(search, max_results=6, timelimit="y")
                 results_list = list(results)
         except Exception as e:
             return f"Search failed: {str(e)}"
@@ -290,13 +299,13 @@ class General_LLM_Tools:
             return "No search results found."
 
         clean_lines = []
-        for i, result in enumerate(results_list[:3], start=1):
+        for i, result in enumerate(results_list):
             title = (result.get("title") or "Untitled").strip()
             href = (result.get("href") or "").strip()
             body = (result.get("body") or "").strip()
             body = " ".join(body.split())
-            if len(body) > 740:
-                body = body[:740].rstrip() + "..."
+            if len(body) > 900:
+                body = body[:900].rstrip() + "…"
             clean_lines.append(f"{i}. {title}\n{body}\nSource: {href}")
 
         clean_text = "\n\n".join(clean_lines)
@@ -305,7 +314,8 @@ class General_LLM_Tools:
 
     # Gets a 24 hours rain and temp forecast
     @staticmethod
-    def get_weather():
+    def get_weather(single_hour_forecast=False):
+        no_forecast = Important_Stuff.better_bool(single_hour_forecast)
         print("debug: used weather")
         # --- get location from IP ---
         loc = requests.get("http://ip-api.com/json/").json()
@@ -319,7 +329,7 @@ class General_LLM_Tools:
                 "longitude": lon,
                 "hourly": "temperature_2m,precipitation_probability",
                 "temperature_unit": "fahrenheit",
-                "forecast_hours": 12,
+                "forecast_hours": 13,
                 "timezone": "auto"
             }
         ).json()
@@ -333,20 +343,51 @@ class General_LLM_Tools:
         peak_rain_time = datetime.fromisoformat(times[max_rain_idx]).strftime("%I:%M %p")
 
         hourly_forecast = []
+
         for t, temp, rain in zip(times, temps, rain_probs):
+            dt = datetime.fromisoformat(t)
+
             hourly_forecast.append({
-                "time_local": datetime.fromisoformat(t).strftime("%I:%M %p"),
+                "time_local": dt.strftime("%I:%M %p"),
                 "temp_f": round(temp, 1),
                 "rain_chance_percent": rain,
             })
 
-        summary = {
-            "next_12h_temp_low_f": round(min(temps), 1),
-            "next_12h_temp_high_f": round(max(temps), 1),
-            "max_rain_chance_percent": max_rain,
-            "peak_rain_time_local": peak_rain_time,
-            "hourly_forecast": hourly_forecast,
-        }
-        return json.dumps(summary, separators=(", ", ": "))
+        # ---------------------------
+        # FORECAST MODE SWITCH
+        # ---------------------------
+        first = hourly_forecast[0]
+        if no_forecast:
+            # ONLY FIRST FORECAST ITEM
+
+            formatted_output = (
+                f"CURRENT TEMP AND RAIN\n"
+                f"{first['time_local']} — {first['temp_f']}°F — {first['rain_chance_percent']}% rain"
+            )
+
+        else:
+            # full 13-hour forecast
+            hourly_forecast = hourly_forecast[:13]
+            temps = temps[:13]
+            rain_probs = rain_probs[:13]
+            times = times[:13]
+
+            forecast_lines = [
+                f"{item['time_local']} — {item['temp_f']}°F — {item['rain_chance_percent']}% rain"
+                for item in hourly_forecast
+            ]
+
+            formatted_output = (
+                    f"NEXT 12 HOURS WEATHER\n"
+                    f"Current weather: {first['time_local']} — {first['temp_f']}°F — {first['rain_chance_percent']}% rain\n\n"
+                    f"Low: {round(min(temps), 1)}°F\n"
+                    f"High: {round(max(temps), 1)}°F\n"
+                    f"Peak rain chance: {max(rain_probs)}%\n\n"
+                    f"Hourly forecast:\n" +
+                    "\n".join(forecast_lines)
+            )
+
+        print(formatted_output)
+        return formatted_output
 
 ModelTools = General_LLM_Tools()
