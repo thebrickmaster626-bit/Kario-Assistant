@@ -26,11 +26,23 @@ use Intel Macs, expect it to be ***VERY*** slow.
 ## Setup Steps
 
 1. Download installation.command from the repository.
-2. Double-click the file, making sure you are on macOS. This will clone the Git and install necessary packages, usually
-   at your home folder. Navigate to the desired folder to clone to by doing `cd /path/to/your/clone/destination/`. Make
-   sure to replace that path with where you actually want the project to be.
-3. If macOS rejects it, you can simply copy-and-paste the commands OR you can go to system settings > privacy settings >
-   scroll down > and allow it.
+2. Double-click the file, making sure you are on macOS. This will clone the Git and install necessary package, as well
+   as set up the python venv.
+3. If macOS rejects it, you can simply copy-and-paste the commands below:
+
+```sh
+read "DEST?Enter the full folder path where you want the project to be cloned: "
+cd "$DEST" || exit 1
+
+git clone https://github.com/thebrickmaster626-bit/Kario-Assistant
+cd Kario-Assistant
+python3 -m venv .venv
+source .venv/bin/activate
+python3 -m pip install -r Installation/requirements.txt
+ollama pull qwen2.5:3b
+echo "Assistant is ready to run. Before using, please make sure Ollama is open and that the server is on."
+```
+
 4. Make sure Ollama is on by running the following command:
 
 ```sh
