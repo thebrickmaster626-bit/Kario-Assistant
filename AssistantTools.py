@@ -5,11 +5,10 @@ import re
 import subprocess
 import threading
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 from urllib.parse import quote_plus
 import requests
 from ddgs import DDGS
-
 from SpeechToText import record_and_transcribe
 
 """
@@ -38,10 +37,9 @@ class Important_Stuff:
         filtered = (text.replace("\n", " ")
                     .replace("\r", " ")
                     .replace("\t", " ")
-                    .replace("-", " ")
                     .replace("*", "")
                     .replace("•", " ")
-                    .replace("/", "slash"))
+                    )
         if block:
             subprocess.run(["say", filtered])
         else:
@@ -205,6 +203,49 @@ class Apple_Integration:
         subprocess.run(["osascript", "-e", script])
         print("Playing Spotify")
 
+    @staticmethod
+    def set_reminder(name, offset_day, hour, minute, AMPM):
+
+        hour = int(hour)
+        minute = int(minute)
+
+        # ---- compute target date from today + offset ----
+        target = datetime.now() + timedelta(days=offset_day)
+
+        year = target.year
+        month = target.month
+        day = target.day
+
+        # ---- AM/PM conversion ----
+        if AMPM.lower() == "am":
+            if hour == 12:
+                hr = 0
+            else:
+                hr = hour
+        elif AMPM.lower() == "pm":  # pm
+            if hour == 12:
+                hr = 12
+            else:
+                hr = hour + 12
+        else:
+            print("ERROR: AMPM MUST BE AM or PM")
+            return
+
+
+        script = f'''
+        tell application "Reminders"
+            set d to current date
+            set year of d to {year}
+            set month of d to {month}
+            set day of d to {day}
+            set hours of d to {hr}
+            set minutes of d to {minute:02d}
+
+            make new reminder with properties {{name:"{name}", due date:d}}
+        end tell
+        '''
+
+        subprocess.run(["osascript", "-e", script])
 
 Apple = Apple_Integration()
 

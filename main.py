@@ -11,7 +11,7 @@ from rich.markdown import Markdown
 
 console = Console()
 
-LLM = "ministral-3:3b"
+LLM = "qwen2.5:3b"
 Has_tool_result = True
 Can_speak = False
 history = Path("chathistory.txt")
@@ -41,7 +41,7 @@ def decrypt(text):
     return decrypted
 
 OPTIONS = {
-    "num_ctx": 3072,
+    "num_ctx": 4096,
     "num_predict": 280,
     "temperature": 0.25,
     "top_p": 0.88,
@@ -50,7 +50,7 @@ OPTIONS = {
     "num_thread": 8,
 }
 
-system_prompt = Path("Prompt.txt").read_text(encoding="utf-8")
+system_prompt = Path("Prompt.md").read_text(encoding="utf-8")
 console.print(Markdown("LLM running! Model:"))
 console.print(Markdown(LLM))
 
@@ -86,6 +86,7 @@ while True:
             ModelTools.stop_all_timers,
             Apple.send_imessage,
             Apple.call_number,
+            Apple.set_reminder,
         ]
 
         # First request
@@ -134,6 +135,9 @@ while True:
                     Has_tool_result = False
                 elif name == "call_number":
                     Important_Stuff.safe_call(Apple.call_number, args)
+                    Has_tool_result = False
+                elif name == "set_reminder":
+                    Important_Stuff.safe_call(ModelTools.set_reminder, args)
                     Has_tool_result = False
                 else:
                     tool_result = "Unknown tool"
