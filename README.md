@@ -26,7 +26,7 @@ use Intel Macs, expect it to be ***VERY*** slow.
 ## Setup Steps
 
 1. Download installation.command from the repository.
-2. Double-click the file, making sure you are on macOS. This will clone the Git and install necessary package, as well
+2. Double-click the file, making sure you are on macOS. This will clone the Git and install necessary packages, as well
    as set up the python venv.
 3. If macOS rejects it, you can simply copy-and-paste the commands below:
 
