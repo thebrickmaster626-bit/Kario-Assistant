@@ -137,7 +137,7 @@ while True:
                     Important_Stuff.safe_call(Apple.call_number, args)
                     Has_tool_result = False
                 elif name == "set_reminder":
-                    Important_Stuff.safe_call(ModelTools.set_reminder, args)
+                    Important_Stuff.safe_call(Apple.set_reminder, args)
                     Has_tool_result = False
                 else:
                     tool_result = "Unknown tool"

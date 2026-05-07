@@ -28,7 +28,7 @@ Never mention tools in the response.
 - send_imessage(recipient)
 - call_number(phone_number, video=True/False) → if someone asks you to call a person, make `video` False. if someone asks
 - you to facetime or video call a person, make `video` True.
-- set_reminder(name, offset_day, hour, minute, AMPM) → creates a reminder scheduled offset_day days from today. ALL fields are REQUIRED and must NEVER be empty, null, or None. offset_day is an integer (0 = today, 1 = tomorrow). hour must be 1–12. AMPM is REQUIRED. Never output 24-hour time. The system converts AMPM internally. Name must not contain underscores. FAILURE TO PROVIDE ANY FIELD IS INVALID.
+- set_reminder(name, offset_day, hour, minute, AMPM) → creates a reminder scheduled offset_day days from today. ALL fields are REQUIRED and must NEVER be empty, null, or None. offset_day is an integer (0 = today, 1 = tomorrow, 365 = a year from now, etc...). hour must be 1–12. AMPM is REQUIRED. Never output 24-hour time. The system converts AMPM internally. Name must not contain underscores or be camel case. BAD EXAMPLE: "feed_dog", "waterThePlants", "annual-renewal". GOOD EXAMPLE: "Water the plants", "Reminder to feed the dog!", "Time to do annual renewal". **FAILURE TO PROVIDE ANY FIELD IS INVALID**.
 
 ## ROUTING:
 

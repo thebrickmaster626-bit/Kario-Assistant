@@ -24,7 +24,7 @@ Line 179: class "General_LLM_Tools"
 # False -> return "Tool error: ..." and continue running.
 # If you wish to remove the ability to send and call people, set Testing_automation to true
 
-CRASH_ON_TOOL_ERROR = False
+CRASH_ON_TOOL_ERROR = True
 Testing_automation = True
 
 # Important and miscellaneous stuff
@@ -208,6 +208,7 @@ class Apple_Integration:
 
         hour = int(hour)
         minute = int(minute)
+        offset_day = int(offset_day)
 
         # ---- compute target date from today + offset ----
         target = datetime.now() + timedelta(days=offset_day)
@@ -245,7 +246,9 @@ class Apple_Integration:
         end tell
         '''
 
+        minute = f"{minute:02d}"
         subprocess.run(["osascript", "-e", script])
+        Important_Stuff.speak(f"I have set a reminder for you to go off at {hour}:{'' if minute == '00' else minute} {AMPM}")
 
 Apple = Apple_Integration()
 
