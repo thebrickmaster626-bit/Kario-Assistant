@@ -11,7 +11,7 @@ from rich.markdown import Markdown
 
 console = Console()
 
-LLM = "qwen2.5:3b"
+LLM = "ministral-3:3b"
 Has_tool_result = True
 Can_speak = False
 history = Path("chathistory.txt")
@@ -58,12 +58,12 @@ if history.exists():
     if history.read_bytes() == b"":
         messages = encrypt(json.dumps([{"role": "system", "content": system_prompt}, {"role": "system", "content": f"The user's name is {username} and today's date is {ModelTools.get_date_and_time()}."}])).encode()
         history.write_bytes(messages)
-        messages = None
+
     else:
         if input("Would you like to clear chat history (y/n):") == "y":
             messages = encrypt(json.dumps([{"role": "system", "content": system_prompt}, {"role": "system", "content": f"The user's name is {username} and today's date is {ModelTools.get_date_and_time()}."}])).encode()
             history.write_bytes(messages)
-            messages = None
+
 else:
     history.touch()
 
@@ -77,7 +77,7 @@ while True:
         messages.append({"role": "user", "content": prompt})
         messages[1] = {"role": "system", "content": f"The user's name is {username} and today's date is {ModelTools.get_date_and_time()}."}
         history.write_bytes(encrypt(json.dumps(messages)).encode())
-        messages = None
+
         tools = [
             ModelTools.get_weather,
             ModelTools.search_the_web,
@@ -126,32 +126,36 @@ while True:
                     Has_tool_result = False
                 elif name == "stop_timer":
                     Important_Stuff.safe_call(ModelTools.stop_timer, args)
+                    tool_result = "Timer has been stopped."
                     Has_tool_result = False
                 elif name == "stop_all_timers":
                     ModelTools.stop_all_timers()
+                    tool_result = "All timers have been stopped."
                     Has_tool_result = False
                 elif name == "send_imessage":
                     Important_Stuff.safe_call(Apple.send_imessage, args)
+                    tool_result = "Message has been sent."
                     Has_tool_result = False
                 elif name == "call_number":
                     Important_Stuff.safe_call(Apple.call_number, args)
+                    tool_result = "A call has been successfully initiated."
                     Has_tool_result = False
                 elif name == "set_reminder":
                     Important_Stuff.safe_call(Apple.set_reminder, args)
+                    tool_result = "Reminder has been set."
                     Has_tool_result = False
                 else:
                     tool_result = "Unknown tool"
+                    Has_tool_result = True
 
-                if Has_tool_result:
-                    messages = json.loads(decrypt(history.read_bytes().decode()))
-                    messages.append({
-                        "role": "tool",
-                        "tool_name": name,
-                        "content": tool_result,
-                    })
-                    history.write_bytes(encrypt(json.dumps(messages)).encode())
-
-                # Ask the model for a *second* response after the tool results ONLY if the tool was to get data, if it is to execute actions then this will be skipped
+                messages = json.loads(decrypt(history.read_bytes().decode()))
+                messages.append({
+                    "role": "tool",
+                    "tool_name": name,
+                    "content": tool_result,
+                })
+                history.write_bytes(encrypt(json.dumps(messages)).encode())
+                # Ask the model for a *second* response after the tool results ONLY if the tool was to get data, if it is to execute actions only then this will be skipped
                 if Has_tool_result:
                     response = chat(
                         model=LLM,
@@ -160,31 +164,31 @@ while True:
                         options=OPTIONS,
                         tools=tools,
                     )
-                if response.message.content != "":
+
                     messages = json.loads(decrypt(history.read_bytes().decode()))
-                    if Has_tool_result:
-                        messages.pop()
-                        messages.append({"role": "assistant", "content": response.message.content})
-                    else:
-                        messages.append({
-                            "role": "assistant",
-                            "content": "Tool ran successfully.",
-                        })
+                    messages.append({"role": "assistant", "content": response.message.content})
                     history.write_bytes(encrypt(json.dumps(messages)).encode())
-                    messages = None
+
                     console.print(Markdown(response.message.content))
                     Important_Stuff.speak(response.message.content)
+                else:
+                    messages = json.loads(decrypt(history.read_bytes().decode()))
+                    messages.append({"role": "assistant", "content": "Task has been completed successfully! How else can i assist you today?"})
+                    history.write_bytes(encrypt(json.dumps(messages)).encode())
         else:
             Important_Stuff.speak(response_text)
             messages = json.loads(decrypt(history.read_bytes().decode()))
             messages.append({"role": "assistant", "content": response.message.content})
             history.write_bytes(encrypt(json.dumps(messages)).encode())
-            messages = None
 
         # clear chat history to preserve space and memory
         messages = json.loads(decrypt(history.read_bytes().decode()))
         if len(messages) > 10:
             console.print(Markdown("too many messages! cutting off old ones..."))
-            messages.pop(2)
-            messages.pop(2)
+            if messages[3].get("role").lower() == "tool":
+                for i in range(3):
+                    messages.pop(2)
+            else:
+                for i in range(2):
+                    messages.pop(2)
         history.write_bytes(encrypt(json.dumps(messages)).encode())
