@@ -41,7 +41,7 @@ def decrypt(text):
     return decrypted
 
 OPTIONS = {
-    "num_ctx": 4096,
+    "num_ctx": 5120,
     "num_predict": 280,
     "temperature": 0.25,
     "top_p": 0.88,
@@ -183,7 +183,22 @@ while True:
 
         # clear chat history to preserve space and memory
         messages = json.loads(decrypt(history.read_bytes().decode()))
-        if len(messages) > 10:
+        # Get turns
+        turns = 0
+        i = 3
+        while True:
+            print(i)
+            print("messages: ", len(messages))
+            if i >= len(messages):
+                break
+            if messages[i].get("role").lower() == "tool":
+                i += 3
+            else:
+                i += 2
+            turns += 1
+        print("turns:", turns)
+
+        if turns == 4:
             console.print(Markdown("too many messages! cutting off old ones..."))
             if messages[3].get("role").lower() == "tool":
                 for i in range(3):
