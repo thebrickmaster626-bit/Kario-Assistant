@@ -41,13 +41,14 @@ def decrypt(text):
     return decrypted
 
 OPTIONS = {
-    "num_ctx": 5120,
-    "num_predict": 280,
-    "temperature": 0.25,
-    "top_p": 0.88,
-    "top_k": 24,
+    "num_ctx": 2560,
+    "num_predict": 215,
+    "temperature": 0.15,
+    "top_p": 0.86,
+    "top_k": 15,
     "repeat_penalty": 1.14,
-    "num_thread": 8,
+    "num_thread": 7,
+    "num_batch": 270
 }
 
 system_prompt = Path("Prompt.md").read_text(encoding="utf-8")
@@ -60,7 +61,7 @@ if history.exists():
         history.write_bytes(messages)
 
     else:
-        if input("Would you like to clear chat history (y/n):") == "y":
+        if "y" in input("Would you like to clear chat history (y/n):").lower() :
             messages = encrypt(json.dumps([{"role": "system", "content": system_prompt}, {"role": "system", "content": f"The user's name is {username} and today's date is {ModelTools.get_date_and_time()}."}])).encode()
             history.write_bytes(messages)
 
@@ -97,6 +98,12 @@ while True:
             think=False,
             options=OPTIONS,
         )
+        gen_tps = response.eval_count / (response.eval_duration / 1e9)
+        prompt_tps = response.prompt_eval_count / (response.prompt_eval_duration / 1e9)
+        prompt_seconds = response.prompt_eval_duration / 1e9
+        print("gen_tps:", round(gen_tps, 2))
+        print("prompt_tps:", round(prompt_tps, 2))
+        print("prompt eval sec:", round(prompt_seconds, 4))
         response_text = (response.message.content or "").strip()
         if response_text:
             console.print(Markdown(response_text))
@@ -157,13 +164,19 @@ while True:
                 history.write_bytes(encrypt(json.dumps(messages)).encode())
                 # Ask the model for a *second* response after the tool results ONLY if the tool was to get data, if it is to execute actions only then this will be skipped
                 if Has_tool_result:
-                    response = chat(
+                    response = ollama.chat(
                         model=LLM,
                         messages=json.loads(decrypt(history.read_bytes().decode())),
                         think=False,
                         options=OPTIONS,
                         tools=tools,
                     )
+                    gen_tps = response.eval_count / (response.eval_duration / 1e9)
+                    prompt_tps = response.prompt_eval_count / (response.prompt_eval_duration / 1e9)
+                    prompt_seconds = response.prompt_eval_duration / 1e9
+                    print("gen_tps:", round(gen_tps, 2))
+                    print("prompt_tps:", round(prompt_tps, 2))
+                    print("prompt eval sec:", round(prompt_seconds, 4))
 
                     messages = json.loads(decrypt(history.read_bytes().decode()))
                     messages.append({"role": "assistant", "content": response.message.content})
@@ -184,7 +197,7 @@ while True:
         messages = json.loads(decrypt(history.read_bytes().decode()))
         # Get turns
         turns = 0
-        i = -1
+        i = 1
         first_real_message = 0
         # set the starting index automatically in case system messages change
         while True:
