@@ -168,7 +168,6 @@ while True:
                     messages = json.loads(decrypt(history.read_bytes().decode()))
                     messages.append({"role": "assistant", "content": response.message.content})
                     history.write_bytes(encrypt(json.dumps(messages)).encode())
-
                     console.print(Markdown(response.message.content))
                     Important_Stuff.speak(response.message.content)
                 else:
@@ -185,10 +184,18 @@ while True:
         messages = json.loads(decrypt(history.read_bytes().decode()))
         # Get turns
         turns = 0
-        i = 3
+        i = -1
+        first_real_message = 0
+        # set the starting index automatically in case system messages change
         while True:
-            print(i)
-            print("messages: ", len(messages))
+            if messages[i].get("role").lower() == "system":
+                i += 1
+            else:
+                first_real_message = (i - 1)
+                break
+
+        # Get turns
+        while True:
             if i >= len(messages):
                 break
             if messages[i].get("role").lower() == "tool":
@@ -196,11 +203,10 @@ while True:
             else:
                 i += 2
             turns += 1
-        print("turns:", turns)
 
-        if turns == 4:
+        if turns >= 4:
             console.print(Markdown("too many messages! cutting off old ones..."))
-            if messages[3].get("role").lower() == "tool":
+            if messages[first_real_message].get("role").lower() == "tool":
                 for i in range(3):
                     messages.pop(2)
             else:
