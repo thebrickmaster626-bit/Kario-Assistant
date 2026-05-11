@@ -41,14 +41,14 @@ def decrypt(text):
     return decrypted
 
 OPTIONS = {
-    "num_ctx": 2560,
-    "num_predict": 215,
+    "num_ctx": 1450,
+    "num_predict": 190,
     "temperature": 0.15,
     "top_p": 0.86,
     "top_k": 15,
     "repeat_penalty": 1.14,
-    "num_thread": 7,
-    "num_batch": 270
+    "num_thread": 8,
+    "num_batch": 460
 }
 
 system_prompt = Path("Prompt.md").read_text(encoding="utf-8")
@@ -80,14 +80,7 @@ while True:
         history.write_bytes(encrypt(json.dumps(messages)).encode())
 
         tools = [
-            ModelTools.get_weather,
-            ModelTools.search_the_web,
-            ModelTools.start_timer,
-            ModelTools.stop_timer,
-            ModelTools.stop_all_timers,
-            Apple.send_imessage,
-            Apple.call_number,
-            Apple.set_reminder,
+            Important_Stuff.call_tool,
         ]
 
         # First request
@@ -104,6 +97,8 @@ while True:
         print("gen_tps:", round(gen_tps, 2))
         print("prompt_tps:", round(prompt_tps, 2))
         print("prompt eval sec:", round(prompt_seconds, 4))
+        print("conversation tokens:", response.prompt_eval_count)
+
         response_text = (response.message.content or "").strip()
         if response_text:
             console.print(Markdown(response_text))
@@ -122,35 +117,10 @@ while True:
 
                 console.print(Markdown(f"ran tool {name}"))
                 console.print(Markdown(f"args: {args}"))
-                if name == "get_weather":
-                    tool_result = ModelTools.get_weather()
+
+                if name == "call_tool":
+                    tool_result = Important_Stuff.call_tool(**args)
                     Has_tool_result = True
-                elif name == "search_the_web":
-                    tool_result = Important_Stuff.safe_call(ModelTools.search_the_web, args)
-                    Has_tool_result = True
-                elif name == "start_timer":
-                    tool_result = Important_Stuff.safe_call(ModelTools.start_timer, args)
-                    Has_tool_result = False
-                elif name == "stop_timer":
-                    Important_Stuff.safe_call(ModelTools.stop_timer, args)
-                    tool_result = "Timer has been stopped."
-                    Has_tool_result = False
-                elif name == "stop_all_timers":
-                    ModelTools.stop_all_timers()
-                    tool_result = "All timers have been stopped."
-                    Has_tool_result = False
-                elif name == "send_imessage":
-                    Important_Stuff.safe_call(Apple.send_imessage, args)
-                    tool_result = "Message has been sent."
-                    Has_tool_result = False
-                elif name == "call_number":
-                    Important_Stuff.safe_call(Apple.call_number, args)
-                    tool_result = "A call has been successfully initiated."
-                    Has_tool_result = False
-                elif name == "set_reminder":
-                    Important_Stuff.safe_call(Apple.set_reminder, args)
-                    tool_result = "Reminder has been set."
-                    Has_tool_result = False
                 else:
                     tool_result = "Unknown tool"
                     Has_tool_result = True
@@ -177,7 +147,7 @@ while True:
                     print("gen_tps:", round(gen_tps, 2))
                     print("prompt_tps:", round(prompt_tps, 2))
                     print("prompt eval sec:", round(prompt_seconds, 4))
-
+                    print("conversation tokens:", response.prompt_eval_count)
                     messages = json.loads(decrypt(history.read_bytes().decode()))
                     messages.append({"role": "assistant", "content": response.message.content})
                     history.write_bytes(encrypt(json.dumps(messages)).encode())

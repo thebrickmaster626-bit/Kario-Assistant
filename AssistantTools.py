@@ -46,8 +46,19 @@ class Important_Stuff:
             subprocess.Popen(["say", filtered])
 
     @staticmethod
-    def safe_call(func, args):
+    def call_tool(func: str, args: dict):
+        TOOLS = {
+            "weather": ModelTools.get_weather,
+            "search": ModelTools.search_the_web,
+            "start_timer" : ModelTools.start_timer,
+            "stop_timer" : ModelTools.stop_timer,
+            "send_imessage": Apple.send_imessage,
+            "call_person": Apple.call_number,
+            "set_reminder": Apple.set_reminder,
+            "draft": Apple
+        }
         try:
+            func = TOOLS[func]
             sig = inspect.signature(func)
 
             # keep only valid parameters
@@ -57,9 +68,8 @@ class Important_Stuff:
             }
 
             return func(**filtered)
-
         except Exception as e:
-            if CRASH_ON_TOOL_ERROR:
+            if True:
                 raise
             return f"Tool error: {e}"
 
