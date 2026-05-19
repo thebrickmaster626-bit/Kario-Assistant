@@ -1,6 +1,6 @@
 import ollama
 from SpeechToText import record_and_transcribe
-from AssistantTools import Important_Stuff, ModelTools
+from AssistantTools import Apple, Important_Stuff, ModelTools
 from pathlib import Path
 import keyring
 from cryptography.fernet import Fernet
@@ -45,7 +45,7 @@ def decrypt(text):
     return decrypted
 
 OPTIONS = {
-    "num_ctx": 1150,
+    "num_ctx": 1080,
     "num_predict": 150,
     "temperature": 0.05,
     "top_p": 0.77,
@@ -100,7 +100,7 @@ while True:
                 response = ollama.chat(
                     model=LLM,
                     messages=messages,
-                    tools=[Important_Stuff.run_action],
+                    tools=[Important_Stuff.run_action, Apple.compose],
                     think=False,
                     options=OPTIONS,
                 )
@@ -113,9 +113,9 @@ while True:
                 print("prompt eval sec:", round(prompt_seconds, 4))
                 print("conversation tokens:", response.prompt_eval_count)
             except Exception as e:
-                response = "an error occurred:", str(e)
-                print("an error occurred:", str(e))
-                messages.append({"role": "assistant", "content": "An error occurred in the LLM: " + str(e)})
+                response = "an error occurred in the LLM:", str(e)
+                print("an error occurred in the LLM:", str(e))
+                messages.append({"role": "assistant", "content": "Sorry, I'm having trouble right now. " + str(e)})
                 history.write_bytes(encrypt(json.dumps(messages)).encode())
 
             if response_text:
@@ -136,19 +136,34 @@ while True:
                     console.print(Markdown(f"ran tool {name}"))
                     console.print(Markdown(f"args: {args}"))
 
-                    if name == "run_action":
-                        tool_result = Important_Stuff.run_action(**args)
-                        Has_tool_result = bool(tool_result)
-                    else:
-                        tool_result = "Unknown tool"
-                        Has_tool_result = True
+                    try:
+                        if name == "run_action":
+                            tool_result = Important_Stuff.run_action(**args)
+                            if tool_result == "Action ran successfully but has no result":
+                                has_tool_result = False
+                            else:
+                                has_tool_result = True
+                        elif name == "compose":
+                            tool_result = Important_Stuff.run_action("compose", **args)
+                            has_tool_result = False
+                        else:
+                            tool_result = "Unknown tool"
+                            Has_tool_result = True
 
-                    messages.append({
-                        "role": "tool",
-                        "tool_name": name,
-                        "content": tool_result,
-                    })
-                    history.write_bytes(encrypt(json.dumps(messages)).encode())
+                        messages.append({
+                            "role": "tool",
+                            "tool_name": name,
+                            "content": tool_result,
+                        })
+                        history.write_bytes(encrypt(json.dumps(messages)).encode())
+                    except Exception as e:
+                        print("a tool error has occurred:", str(e))
+                        messages.append({
+                            "role": "tool",
+                            "tool_name": name,
+                            "content": "An error has occurred."
+                        })
+                        history.write_bytes(encrypt(json.dumps(messages)).encode())
                     # Ask the model for a *second* response after the tool results ONLY if the tool was to get data, if it is to execute actions only then this will be skipped
                     if Has_tool_result:
                         response = ollama.chat(

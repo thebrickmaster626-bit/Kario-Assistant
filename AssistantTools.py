@@ -22,7 +22,8 @@ Line 179: class "General_LLM_Tools"
 # Debug toggle:
 # True  -> do not swallow tool errors; raise and crash for debugging.
 # False -> return "Tool error: ..." and continue running.
-# If you wish to remove the ability to send and call people, set Testing_automation to true
+# If you wish to remove the ability to send and call people, set Testing_automation to True
+# If you wish for the assistant to not talk and for you to not wait for it to finish talking, set quiet_mode to True
 
 CRASH_ON_TOOL_ERROR = False
 Testing_automation = True
@@ -49,7 +50,6 @@ class Important_Stuff:
 
     @staticmethod
     def run_action(func: str, args: dict):
-
         ACTIONS = {
             "weather": ModelTools.get_weather,
             "search": ModelTools.search_the_web,
@@ -58,7 +58,7 @@ class Important_Stuff:
             "send_imessage": Apple.send_imessage,
             "call_person": Apple.call_number,
             "set_reminder": Apple.set_reminder,
-            "compose": Apple.draft,
+            "compose": Apple.compose,
             "calculate": ModelTools.calculate,
         }
         try:
@@ -68,7 +68,13 @@ class Important_Stuff:
             bound = sig.bind_partial(**args)
             bound.apply_defaults()
 
-            return action(**bound.arguments)
+            action_result = action(**bound.arguments)
+            if action_result == None or action_result == "":
+                print("Action ran successfully but has no result")
+                return "Action ran successfully but has no result"
+            else:
+                print(action_result)
+                return action_result
         except Exception as e:
             if CRASH_ON_TOOL_ERROR:
                 raise
@@ -148,15 +154,18 @@ class Apple_Integration:
         while True:
             Important_Stuff.speak("What would you like to say?")
             message = record_and_transcribe()
-            Important_Stuff.speak(f"Is this correct? {message}")
-            confirmation = record_and_transcribe()
-            confirmation = confirmation.lower()
-            if "yes" in confirmation or "yeah" in confirmation:
-                break
-            elif "cancel" in confirmation:
-                return
+            if message != "cancel":
+                Important_Stuff.speak(f"Is this correct? {message}")
+                confirmation = record_and_transcribe()
+                confirmation = confirmation.lower()
+                if "yes" in confirmation or "yeah" in confirmation:
+                    break
+                elif "cancel" in confirmation:
+                    return
+                else:
+                    pass
             else:
-                pass
+                return
         if not Testing_automation:
             buddy = Apple.escape_applescript_string(buddy)
             message = Apple.escape_applescript_string(message)
@@ -277,7 +286,7 @@ class Apple_Integration:
 
     # Uses MORE AI to draft lists and write emails
     @staticmethod
-    def draft(ai_prompt, is_email_draft=False):
+    def compose(ai_prompt, is_email_draft=False):
         is_email_draft = bool(is_email_draft)
         if not is_email_draft:
             prompt = """
@@ -311,7 +320,7 @@ class Apple_Integration:
             Note: Kario is an assistant for a user. You are a writing backend for Kario, so if you were to put a placeholder that says [Kario's name] or [Kario's address] for example, please use User instead of Kario.
             """.strip()
         response = ollama.chat(
-            model="qwen2.5:3b",
+            model="phi4-mini",
             messages=[
                 {"role": "system", "content": prompt},
                 {"role": "user", "content": ai_prompt},
@@ -329,8 +338,8 @@ class Apple_Integration:
                         tell default folder
                             make new note with properties {{body:"{html}"}}
                         end tell
-                    activate
                     end tell
+                    activate
                 end tell
             end
             '''
@@ -531,7 +540,7 @@ class General_LLM_Tools:
 
     @staticmethod
     def calculate(Math_problem):
-        Result = Math_problem.lower().replace("x", "*").replace("÷", "/").replace("^", "**")
+        Result = Math_problem.lower().replace("x", "*").replace("×", "*").replace("÷", "/").replace("^", "**")
         return Result
 
 ModelTools = General_LLM_Tools()
