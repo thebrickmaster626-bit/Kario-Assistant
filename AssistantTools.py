@@ -300,9 +300,9 @@ class Apple_Integration:
             - If Kario gives Markdown, preserve its structure and improve clarity.
             - Output only the final Markdown note body, no extra commentary.
             - In your writing, never include something like "Ok, Kario!" or "Here are your notes!"
-            - You are not limited to just notes, you can write reports, lists, books, or just stick to notes.
+            - You are not limited to just notes, you can write reports, lists, books, movie / video scripts, or just stick to notes.
 
-            Note: Kario is an assistant for a user. You are a writing backend for Kario, so if you were to put a placeholder that says [Kario's name] or [Kario's address] for example, please use User instead of Kario.
+            Note: Kario is an assistant for a user. You are a writing backend for Kario, so if you were to put a placeholder that says [Kario's name] or [Kario's address] for example, please use User instead of Kario. However, if Kario provides a name for you to use, use that instead.
             """.strip()
         else:
             prompt = """
@@ -317,7 +317,7 @@ class Apple_Integration:
             - Please do not use headings or titles at all.
             - Please do not generate an email subject at all, you are only drafting the email body.
 
-            Note: Kario is an assistant for a user. You are a writing backend for Kario, so if you were to put a placeholder that says [Kario's name] or [Kario's address] for example, please use User instead of Kario.
+            Note: Kario is an assistant for a user. You are a writing backend for Kario, so if you were to put a placeholder that says [Kario's name] or [Kario's address] for example, please use User instead of Kario. However, if Kario provides a name for you to use, use that instead.
             """.strip()
         response = ollama.chat(
             model="phi4-mini",
