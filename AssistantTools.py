@@ -1,10 +1,10 @@
 import datetime
 import inspect
-import json
 import re
 import subprocess
 import threading
 import time
+import markdown, ollama
 from datetime import datetime, timedelta
 from urllib.parse import quote_plus
 import requests
@@ -24,8 +24,9 @@ Line 179: class "General_LLM_Tools"
 # False -> return "Tool error: ..." and continue running.
 # If you wish to remove the ability to send and call people, set Testing_automation to true
 
-CRASH_ON_TOOL_ERROR = True
+CRASH_ON_TOOL_ERROR = False
 Testing_automation = True
+quiet_mode = True
 
 # Important and miscellaneous stuff
 class Important_Stuff:
@@ -34,20 +35,22 @@ class Important_Stuff:
 
     @staticmethod
     def speak(text, block=True):
-        filtered = (text.replace("\n", " ")
-                    .replace("\r", " ")
-                    .replace("\t", " ")
-                    .replace("*", "")
-                    .replace("•", " ")
-                    )
-        if block:
-            subprocess.run(["say", filtered])
-        else:
-            subprocess.Popen(["say", filtered])
+        if not quiet_mode:
+            filtered = (text.replace("\n", " ")
+                        .replace("\r", " ")
+                        .replace("\t", " ")
+                        .replace("*", "")
+                        .replace("•", " ")
+                        )
+            if block:
+                subprocess.run(["say", filtered])
+            else:
+                subprocess.Popen(["say", filtered])
 
     @staticmethod
-    def call_tool(func: str, args: dict):
-        TOOLS = {
+    def run_action(func: str, args: dict):
+
+        ACTIONS = {
             "weather": ModelTools.get_weather,
             "search": ModelTools.search_the_web,
             "start_timer" : ModelTools.start_timer,
@@ -55,23 +58,22 @@ class Important_Stuff:
             "send_imessage": Apple.send_imessage,
             "call_person": Apple.call_number,
             "set_reminder": Apple.set_reminder,
-            "draft": Apple
+            "compose": Apple.draft,
+            "calculate": ModelTools.calculate,
         }
         try:
-            func = TOOLS[func]
-            sig = inspect.signature(func)
+            action = ACTIONS[func]
+            sig = inspect.signature(action)
 
-            # keep only valid parameters
-            filtered = {
-                k: args.get(k)
-                for k in sig.parameters.keys()
-            }
+            bound = sig.bind_partial(**args)
+            bound.apply_defaults()
 
-            return func(**filtered)
+            return action(**bound.arguments)
         except Exception as e:
-            if True:
+            if CRASH_ON_TOOL_ERROR:
                 raise
-            return f"Tool error: {e}"
+            print(e)
+            return f"Action error: {e}"
 
     @staticmethod
     def alert():
@@ -84,7 +86,7 @@ class Important_Stuff:
         else:
             return False
 
-# Functions that integrate the assistant with MacOS
+# Functions that integrate the assistant with macOS
 class Apple_Integration:
     # Apple integration functions
     def __init__(self):
@@ -221,7 +223,7 @@ class Apple_Integration:
         print("Playing Spotify")
 
     @staticmethod
-    def set_reminder(name, offset_day, hour, minute, AMPM):
+    def set_reminder(name, offset_day, hour, minute, AMPM="military"):
 
         hour = int(hour)
         minute = int(minute)
@@ -235,19 +237,23 @@ class Apple_Integration:
         day = target.day
 
         # ---- AM/PM conversion ----
-        if AMPM.lower() == "am":
-            if hour == 12:
-                hr = 0
+        if hour < 12 or AMPM != "military":
+            if AMPM.lower() == "am":
+                if hour == 12:
+                    hr = 0
+                else:
+                    hr = hour
+            elif AMPM.lower() == "pm":  # pm
+                if hour == 12:
+                    hr = 12
+                else:
+                    hr = hour + 12
             else:
-                hr = hour
-        elif AMPM.lower() == "pm":  # pm
-            if hour == 12:
-                hr = 12
-            else:
-                hr = hour + 12
+                print("ERROR: AMPM MUST BE AM or PM")
+                return
+        # We shall assume that it is in military time if hour is greater than 12 or AMPM is not provided
         else:
-            print("ERROR: AMPM MUST BE AM or PM")
-            return
+            hr = hour
 
 
         script = f'''
@@ -262,17 +268,84 @@ class Apple_Integration:
     
                 make new reminder with properties {{name:"{name}", due date:d}}
             end tell
-        end tell
+        end
         '''
 
         minute = f"{minute:02d}"
         subprocess.run(["osascript", "-e", script])
         Important_Stuff.speak(f"I have set a reminder for you to go off at {hour}:{'' if minute == '00' else minute} {AMPM}")
 
-        # TO DO: make this function draft an email, powered by an LLM
-        @staticmethod
-        def draft_an_email():
-            pass
+    # Uses MORE AI to draft lists and write emails
+    @staticmethod
+    def draft(ai_prompt, is_email_draft=False):
+        is_email_draft = bool(is_email_draft)
+        if not is_email_draft:
+            prompt = """
+            You are Kario's writer.
+            Write clean Markdown text from Kario's request.
+
+            Rules:
+            - Be concise and follow the request.
+            - Keep Kario's intent exactly; do not add unrelated content.
+            - Use headings and bullet points when helpful / asked.
+            - If Kario gives Markdown, preserve its structure and improve clarity.
+            - Output only the final Markdown note body, no extra commentary.
+            - In your writing, never include something like "Ok, Kario!" or "Here are your notes!"
+            - You are not limited to just notes, you can write reports, lists, books, or just stick to notes.
+
+            Note: Kario is an assistant for a user. You are a writing backend for Kario, so if you were to put a placeholder that says [Kario's name] or [Kario's address] for example, please use User instead of Kario.
+            """.strip()
+        else:
+            prompt = """
+            You are Kario's email drafter.
+            Write clean text from Kario's request.
+
+            Rules:
+            - Be concise and follow the request.
+            - Keep Kario's intent exactly; do not add unrelated content.
+            - Output only the final email body, no extra commentary.
+            - In your writing, never include something like "Ok, Kario!" or "Here are your notes!"
+            - Please do not use headings or titles at all.
+            - Please do not generate an email subject at all, you are only drafting the email body.
+
+            Note: Kario is an assistant for a user. You are a writing backend for Kario, so if you were to put a placeholder that says [Kario's name] or [Kario's address] for example, please use User instead of Kario.
+            """.strip()
+        response = ollama.chat(
+            model="qwen2.5:3b",
+            messages=[
+                {"role": "system", "content": prompt},
+                {"role": "user", "content": ai_prompt},
+            ],
+        )
+        ai_text = response.message.content
+        html = markdown.markdown(ai_text, extensions=["extra", "sane_lists"])
+        print(html)
+
+        if not is_email_draft:
+            script = f'''
+            on run argv
+                tell application "Notes"
+                    tell default account
+                        tell default folder
+                            make new note with properties {{body:"{html}"}}
+                        end tell
+                    activate
+                    end tell
+                end tell
+            end
+            '''
+        else:
+            script = f'''
+            on run argv
+                tell application "Mail"
+                    set newMessage to make new outgoing message with properties {{visible:true, content:"{html}"}}
+                    activate
+                end tell
+            end
+            '''
+        subprocess.run(
+            ["osascript", "-e", script],
+        )
 
 Apple = Apple_Integration()
 
@@ -286,14 +359,17 @@ class General_LLM_Tools:
 
     # Gets the current date
     @staticmethod
-    def get_date_and_time():
+    def get_date(include_time=False):
         now = datetime.now()
 
-        hour = now.strftime("%I").lstrip("0")
-        minute = now.strftime("%M")
-        ampm = now.strftime("%p")
+        if include_time:
+            hour = now.strftime("%I").lstrip("0")
+            minute = now.strftime("%M")
+            ampm = now.strftime("%p")
 
-        value = f"{now.strftime('%Y-%m-%d')} {hour}:{minute} {ampm}"
+            value = f"{now.strftime('%Y-%m-%d')} {hour}:{minute} {ampm}"
+        else:
+            value = f"{now.strftime('%Y-%m-%d')}"
 
         print(value)
         return value
@@ -406,10 +482,6 @@ class General_LLM_Tools:
         rain_probs = r["hourly"]["precipitation_probability"]
         times = r["hourly"]["time"]
 
-        max_rain = max(rain_probs)
-        max_rain_idx = rain_probs.index(max_rain)
-        peak_rain_time = datetime.fromisoformat(times[max_rain_idx]).strftime("%I:%M %p")
-
         hourly_forecast = []
 
         for t, temp, rain in zip(times, temps, rain_probs):
@@ -438,7 +510,6 @@ class General_LLM_Tools:
             hourly_forecast = hourly_forecast[:13]
             temps = temps[:13]
             rain_probs = rain_probs[:13]
-            times = times[:13]
 
             forecast_lines = [
                 f"{item['time_local']} — {item['temp_f']}°F — {item['rain_chance_percent']}% rain"
@@ -457,5 +528,10 @@ class General_LLM_Tools:
 
         print(formatted_output)
         return formatted_output
+
+    @staticmethod
+    def calculate(Math_problem):
+        Result = Math_problem.lower().replace("x", "*").replace("÷", "/").replace("^", "**")
+        return Result
 
 ModelTools = General_LLM_Tools()
