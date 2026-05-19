@@ -51,10 +51,15 @@ echo "Assistant is ready to run."
 ollama serve
 ```
 
+5. To kill ollama on macOS, use this:
+
+```sh
+pkill olama
+```
+
 If you are trying to run the setup file on windows, please note that the `.command` file type is macOS exclusive.
-Instead, copy and paste the commands in the file to your terminal. You should be able to open the `.command` in any
-boring
-text editor and the commands should work on windows or linux decently, too.
+Instead, copy the code above. It is `sh` and should mostly work for the most part, but if you can't run that, just clone
+the repo, make a venv, install the models, and run ollama.
 
 ## How to use
 
@@ -81,13 +86,14 @@ assistant, and while using this you do not have to include "Hey computer" or "Co
 - It can provide a weather forecast
 - It can manage timers (decently)
 - It can call or text (with AppleScript automation, it may ask for permissions the first time)
+- It can set reminders (also with AppleScript automation, it may ask for permissions the first time)
 - A lot of the features are local
 - No API key or paid program required for the built-in features
 
 ## Notes
 
 - The default model may change over time.
-- Keep at least 5 GB of free disk space for local model files.
+- Keep at least 8 GB of free disk space for local model files.
 - macOS-only features currently include `say`, `osascript`, Contacts, Messages, FaceTime, and Spotify automation.
 - Remove the class `Apple_Integration` in `AssistantTools.py` and rewrite the `speak` function in `AssistantTools.py` if
   you would like to make the whole thing cross-compatible. I suggest you take the 10 minutes of removing

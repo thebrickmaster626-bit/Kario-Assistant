@@ -1,6 +1,6 @@
 import ollama
 from SpeechToText import record_and_transcribe
-from AssistantTools import Apple, Important_Stuff, ModelTools
+from AssistantTools import Important_Stuff, ModelTools
 from pathlib import Path
 import keyring
 from cryptography.fernet import Fernet
@@ -45,15 +45,15 @@ def decrypt(text):
     return decrypted
 
 OPTIONS = {
-    "num_ctx": 1024,
-    "num_predict": 170,
+    "num_ctx": 1150,
+    "num_predict": 150,
     "temperature": 0.05,
     "top_p": 0.77,
-    "top_k": 8,
+    "top_k": 5,
     "repeat_penalty": 1.04,
     "num_thread": 8,
     "num_batch": 520,
-    "num_gpu": 9999,
+    "num_gpu": 99999,
 }
 
 system_prompt = Path("Prompt.md").read_text(encoding="utf-8")
