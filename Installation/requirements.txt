@@ -8,3 +8,5 @@ ddgs
 pyaudio
 numpy
 faster-whisper
+pillow
+mss
