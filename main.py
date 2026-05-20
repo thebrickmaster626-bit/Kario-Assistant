@@ -45,15 +45,14 @@ def decrypt(text):
     return decrypted
 
 OPTIONS = {
-    "num_ctx": 1080,
-    "num_predict": 150,
+    "num_ctx": 1024,
+    "num_predict": 120,
     "temperature": 0.05,
     "top_p": 0.77,
     "top_k": 5,
     "repeat_penalty": 1.04,
-    "num_thread": 8,
-    "num_batch": 520,
-    "num_gpu": 99999,
+    "num_thread": 6,
+    "num_batch": 256,
 }
 
 system_prompt = Path("Prompt.md").read_text(encoding="utf-8")
@@ -91,7 +90,7 @@ while True:
             prompt = record_and_transcribe()
         else:
             prompt = input("> ")
-        if "computer" in prompt.lower() or "assistant" in prompt.lower() or Can_speak == False:
+        if "computer" in prompt.lower() or "assistant" in prompt.lower() or (not Can_speak):
             messages.append({"role": "user", "content": prompt})
             history.write_bytes(encrypt(json.dumps(messages)).encode())
 
@@ -144,7 +143,7 @@ while True:
                             else:
                                 has_tool_result = True
                         elif name == "compose":
-                            tool_result = Important_Stuff.run_action("compose", **args)
+                            tool_result = Important_Stuff.run_action("compose", args)
                             has_tool_result = False
                         else:
                             tool_result = "Unknown tool"
@@ -191,8 +190,8 @@ while True:
                         history.write_bytes(encrypt(json.dumps(messages)).encode())
             else:
                 # an attempt to see if the AI has hallucinated and outputted args directly, if so then output a warning and attempt to parse it
-                try:
-                    if "{" in response_text:
+                if "{" in response_text:
+                    try:
                         import warnings
                         warnings.warn("LLM has hallucinated! Please tweak the prompt or change the model.", UserWarning)
                         first_brace_index = response_text.find('{')
@@ -200,14 +199,12 @@ while True:
                         response_text = json.loads(json.dumps(json.loads(response_text), indent=None))
                         tool_result = Important_Stuff.run_action(response_text.get("func"), response_text.get("args"))
                         Has_tool_result = bool(tool_result)
-
                         messages.append({
                             "role": "tool",
                             "tool_name": "run_action",
                             "content": tool_result,
                         })
                         history.write_bytes(encrypt(json.dumps(messages)).encode())
-
                         if Has_tool_result:
                             response = ollama.chat(
                                 model=LLM,
@@ -224,13 +221,13 @@ while True:
                             print("prompt_tps:", round(prompt_tps, 2))
                             print("prompt eval sec:", round(prompt_seconds, 4))
                             print("conversation tokens:", response.prompt_eval_count)
-                        else:
-                            Important_Stuff.speak(response_text)
-                            messages.append({"role": "assistant", "content": response_text})
-                            history.write_bytes(encrypt(json.dumps(messages)).encode())
-                except Exception as e:
-                    print(e)
+                    except Exception as e:
+                        print("a tool error has occurred in the backup plan:", str(e))
 
+                else:
+                    Important_Stuff.speak(response_text)
+                    messages.append({"role": "assistant", "content": response_text})
+                    history.write_bytes(encrypt(json.dumps(messages)).encode())
     except Exception as some_larger_error:
         print("An error occurred in the main loop:", str(some_larger_error))
 
@@ -255,7 +252,7 @@ while True:
         else:
             i += 2
         turns += 1
-    if turns >= 4:
+    if turns >= 3:
         console.print(Markdown("too many messages! cutting off old ones..."))
         if messages[3].get("role").lower() == "tool":
             for i in range(3):

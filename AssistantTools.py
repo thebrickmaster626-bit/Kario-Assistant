@@ -327,9 +327,9 @@ class Apple_Integration:
             ],
         )
         ai_text = response.message.content
-        html = markdown.markdown(ai_text, extensions=["extra", "sane_lists"])
-        print(html)
-
+        if not is_email_draft:
+            html = markdown.markdown(ai_text, extensions=["extra", "sane_lists"])
+            print(html)
         if not is_email_draft:
             script = f'''
             on run argv
@@ -347,7 +347,7 @@ class Apple_Integration:
             script = f'''
             on run argv
                 tell application "Mail"
-                    set newMessage to make new outgoing message with properties {{visible:true, content:"{html}"}}
+                    set newMessage to make new outgoing message with properties {{visible:true, content:"{ai_text}"}}
                     activate
                 end tell
             end
@@ -540,7 +540,7 @@ class General_LLM_Tools:
 
     @staticmethod
     def calculate(Math_problem):
-        Result = Math_problem.lower().replace("x", "*").replace("×", "*").replace("÷", "/").replace("^", "**")
+        Result = eval(Math_problem.lower().replace("x", "*").replace("×", "*").replace("÷", "/").replace("^", "**"))
         return Result
 
 ModelTools = General_LLM_Tools()
