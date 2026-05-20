@@ -1,6 +1,10 @@
-ollama==0.6.0
-requests==2.32.5
-ddgs==9.6.0
-numpy==2.2.6
-PyAudio==0.2.14
-faster-whisper==1.2.0
+ollama
+keyring
+cryptography
+rich
+markdown
+requests
+ddgs
+pyaudio
+numpy
+faster-whisper
